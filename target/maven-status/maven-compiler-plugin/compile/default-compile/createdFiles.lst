@@ -1,0 +1,12 @@
+com/lemty/server/domain/Unsubscribe.class
+com/lemty/server/service/EmailSignatureService.class
+com/lemty/server/repo/UserRepo.class
+com/lemty/server/domain/AppUser.class
+com/lemty/server/domain/DeliveribilitySettings.class
+com/lemty/server/domain/ProspectMetadata.class
+com/lemty/server/repo/EmailSignatureRepository.class
+com/lemty/server/domain/GmailCreds.class
+com/lemty/server/domain/ProspectList.class
+com/lemty/server/domain/Campaign.class
+com/lemty/server/domain/EmailSignature.class
+com/lemty/server/domain/Prospect.class

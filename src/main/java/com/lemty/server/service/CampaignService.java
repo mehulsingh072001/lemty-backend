@@ -1,0 +1,263 @@
+package com.lemty.server.service;
+
+import java.util.*;
+
+import com.lemty.server.LemtyApplication;
+import com.lemty.server.domain.AppUser;
+import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Prospect;
+import com.lemty.server.domain.ProspectMetadata;
+import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.ProspectMetadataRepository;
+import com.lemty.server.repo.ProspectRepository;
+import com.lemty.server.repo.UserRepo;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+
+@Service
+public class CampaignService {
+    Logger logger = LoggerFactory.getLogger(CampaignService.class);
+
+    private final Scheduler scheduler;
+    private final CampaignRepository campaignRepository;
+    private final ProspectService prospectService;
+    private final StepService stepService;
+    private final UserRepo userRepo;
+    private final ProspectMetadataRepository prospectMetadataRepository;
+    private final ProspectRepository prospectRepository;
+
+    @Autowired
+    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository){
+        this.scheduler = scheduler;
+        this.campaignRepository = campaignRepository;
+        this.prospectService = prospectService;
+        this.userRepo = userRepo;
+        this.stepService = stepService;
+        this.prospectMetadataRepository = prospectMetadataRepository;
+        this.prospectRepository = prospectRepository;
+    }
+
+    //List all campaigns
+    public List<Campaign> getCampaign(String userId){
+        //AppUser appUser = userRepo.findById(userId).get();
+        return campaignRepository.findByAppUserId(userId, Sort.by("createdAt"));
+    }
+
+    //List Single Campaign
+    public Campaign getSingleCampaign(String campaignId){
+        return campaignRepository.findById(campaignId).get();
+    }
+
+    //set total prospects
+    public void setTotalProspects(String campaignId, Integer prospectCount){
+        Campaign campaign = campaignRepository.findById(campaignId).get();
+        campaign.setProspectCount(prospectCount);
+    }
+
+    //Add new Campaign
+    public void addNewCampaign(Campaign  newCampaign, String userId){
+        Campaign campaign = campaignRepository.findByName(newCampaign.getCampaign_name());
+        if(campaign != null){
+            throw new IllegalStateException("Campaign Exists");
+        }
+        AppUser appUser = userRepo.findById(userId).get();
+        newCampaign.setAppUser(appUser);
+        //List<Map<String, Object>> steps = newCampaign.getSteps();
+        newCampaign.setStatus("Not Started");
+        newCampaign.setProspectCount(0);
+        campaignRepository.saveAndFlush(newCampaign);
+        //stepService.addNewStep(steps, newCampaign.getId());
+    }
+
+
+    public void updateCampaignSettings(Campaign newCampaign, String campaignId){
+        Campaign campaign = campaignRepository.findById(campaignId).get();
+
+        campaign.setId(campaign.getId());
+        campaign.setTimezone(newCampaign.getTimezone());
+        campaign.setCampaignStop(newCampaign.getCampaignStop());
+        campaign.setProspectCount(newCampaign.getProspectCount());
+        campaign.setSteps(newCampaign.getSteps());
+
+        campaignRepository.save(campaign);
+    }
+
+    public void updateCampaignName(Campaign newCampaign, String campaignId){
+        Campaign campaign = campaignRepository.findById(campaignId).get();
+        campaign.setCampaign_name(newCampaign.getCampaign_name());
+        campaignRepository.save(campaign);
+    }
+
+    public void updateCampaignSteps(Campaign campaign, String campaignId){
+        Campaign existingCampaign = campaignRepository.findById(campaignId).get();
+        existingCampaign.setSteps(campaign.getSteps());
+        campaignRepository.save(existingCampaign);
+    }
+
+    @Transactional
+    public void deleteCampaign(String campaignId){
+        boolean exists = campaignRepository.existsById(campaignId);
+        if(!exists){
+            throw new IllegalStateException(
+                    "campaign with id " + campaignId + " does not exists"
+            );
+        }
+        prospectService.removeProspectFromCampaign(campaignId);
+
+        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        for(int i=0; i < steps.size(); i++){
+            try {
+                Set<JobKey> keys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(i + "-" +campaignId));
+                List<JobKey> jobKeys = new ArrayList<JobKey>(keys);
+                scheduler.deleteJobs(jobKeys);
+            } catch (SchedulerException e) {
+                e.printStackTrace();
+            }
+        }
+
+        campaignRepository.deleteById(campaignId);
+    }
+
+    public void pauseCampaign(String campaignId){
+        try {
+            Campaign campaign = campaignRepository.findById(campaignId).get();
+            scheduler.pauseJobs(GroupMatcher.jobGroupEquals(campaignId));
+            campaign.setStatus("Paused");
+            campaignRepository.save(campaign);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resumeCampaign(String campaignId){
+        try {
+            scheduler.resumeJobs(GroupMatcher.jobGroupEquals(campaignId));
+            Campaign campaign = campaignRepository.findById(campaignId).get();
+            campaign.setStatus("Active");
+            campaignRepository.save(campaign);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Object> getNotContactedProspects(String campaignId, int page, int size){
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignIdAndContactedFalse(campaignId, paging);
+        List<Prospect> prospects = new ArrayList<>();
+        for(int i=0; i < pageProspects.getContent().size(); i++){
+            prospects.add(pageProspects.getContent().get(i).getProspect());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospects", prospects);
+        response.put("currentPage", pageProspects.getNumber());
+        response.put("totalElements", pageProspects.getTotalElements());
+        response.put("totalPages", pageProspects.getTotalPages());
+        return response;
+    }
+
+    public Map<String, Object> getBouncedProspects(String campaignId, int page, int size){
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignIdAndBouncedTrue(campaignId, paging);
+        List<Prospect> prospects = new ArrayList<>();
+        for(int i=0; i < pageProspects.getContent().size(); i++){
+            prospects.add(pageProspects.getContent().get(i).getProspect());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospects", prospects);
+        response.put("currentPage", pageProspects.getNumber());
+        response.put("totalElements", pageProspects.getTotalElements());
+        response.put("totalPages", pageProspects.getTotalPages());
+        return response;
+    }
+
+    public Map<String, Object> getRepliedProspects(String campaignId, int page, int size){
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignIdAndRepliedTrue(campaignId, paging);
+        List<Prospect> prospects = new ArrayList<>();
+        for(int i=0; i < pageProspects.getContent().size(); i++){
+            prospects.add(pageProspects.getContent().get(i).getProspect());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospects", prospects);
+        response.put("currentPage", pageProspects.getNumber());
+        response.put("totalElements", pageProspects.getTotalElements());
+        response.put("totalPages", pageProspects.getTotalPages());
+        return response;
+    }
+
+    public Map<String, Object> getNotRepliedProspects(String campaignId, int page, int size){
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignIdAndRepliedFalse(campaignId, paging);
+        List<Prospect> prospects = new ArrayList<>();
+        for(int i=0; i < pageProspects.getContent().size(); i++){
+            prospects.add(pageProspects.getContent().get(i).getProspect());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospects", prospects);
+        response.put("currentPage", pageProspects.getNumber());
+        response.put("totalElements", pageProspects.getTotalElements());
+        response.put("totalPages", pageProspects.getTotalPages());
+        return response;
+    }
+
+    public Map<String, Object> getUnsubsubscribedProspects(String campaignId, int page, int size){
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignIdAndUnsubscribedTrue(campaignId, paging);
+        List<Prospect> prospects = new ArrayList<>();
+        for(int i=0; i < pageProspects.getContent().size(); i++){
+            prospects.add(pageProspects.getContent().get(i).getProspect());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospects", prospects);
+        response.put("currentPage", pageProspects.getNumber());
+        response.put("totalElements", pageProspects.getTotalElements());
+        response.put("totalPages", pageProspects.getTotalPages());
+        return response;
+    }
+
+    public Map<String, Integer> getProspectCountsCampaign(String campaignId){
+        Map<String, Integer> prospectCounts = new HashMap<>();
+        Pageable paging = PageRequest.of(0, Integer.MAX_VALUE);
+
+        Page<Prospect> pageProspects;
+        pageProspects = prospectRepository.findByCampaignsId(campaignId, paging);
+        Page<ProspectMetadata> bouncedMetadatas = prospectMetadataRepository.findByCampaignIdAndBouncedTrue(campaignId, paging);
+        Page<ProspectMetadata> unsubscribedMetadatas = prospectMetadataRepository.findByCampaignIdAndUnsubscribedTrue(campaignId, paging);
+        Page<ProspectMetadata> notContactedMetadatas = prospectMetadataRepository.findByCampaignIdAndContactedFalse(campaignId, paging);
+        Page<ProspectMetadata> repliedMetadatas = prospectMetadataRepository.findByCampaignIdAndRepliedTrue(campaignId, paging);
+        Page<ProspectMetadata> notRepliedMetadatas = prospectMetadataRepository.findByCampaignIdAndRepliedFalse(campaignId, paging);
+
+        prospectCounts.put("all", pageProspects.getContent().size());
+        prospectCounts.put("bounced", bouncedMetadatas.getContent().size());
+        prospectCounts.put("unsubscribed", unsubscribedMetadatas.getContent().size());
+        prospectCounts.put("not_contacted", notContactedMetadatas.getContent().size());
+        prospectCounts.put("replied", repliedMetadatas.getContent().size());
+        prospectCounts.put("not_replied", notRepliedMetadatas.getContent().size());
+
+        return prospectCounts;
+    }
+
+
+}
