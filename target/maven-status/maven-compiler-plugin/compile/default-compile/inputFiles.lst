@@ -19,6 +19,7 @@
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/filter/CustomAuthorizationFilter.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/domain/Role.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/helpers/GmailHelper.java
+/home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/domain/Engagement.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/domain/AppUser.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/service/StepJobService.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/controller/ProspectController.java
@@ -57,6 +58,7 @@
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/UserRepo.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/CampaignRepository.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/service/TrackingService.java
+/home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/EngagementRepository.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/service/MailService.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/service/UserServiceImpl.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/controller/DeliveribilitySettingsController.java

@@ -1,13 +1,12 @@
 package com.lemty.server.service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Engagement;
 import com.lemty.server.domain.ProspectMetadata;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.EngagementRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 
 import org.slf4j.Logger;
@@ -20,22 +19,46 @@ public class TrackingService {
     private final CampaignRepository campaignRepository;
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final StepService stepService;
+    private final EngagementRepository engagementRepository;
 
-    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository) {
+    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository, EngagementRepository engagementRepository) {
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.stepService = stepService;
         this.campaignRepository = campaignRepository;
+        this.engagementRepository = engagementRepository;
     }
 
 
     public void trackOpens(String prospectId, String campaignId, Integer stepNumber, Integer mailNumber){
         //Set opens in prospect metadata
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
-        if(metadata.getOpens() == null){
-            metadata.setOpens(1);
+
+        List<Engagement> engagements = engagementRepository.findByProspectMetadataId(metadata.getId());
+        if(engagements.isEmpty()){
+            Engagement engagement = new Engagement();
+            engagement.setOpens(engagement.getOpens() + 1);
+            engagement.setStepNumber(stepNumber + 1);
+            engagement.setProspectMetadata(metadata);
+            engagements.add(engagement);
+            engagementRepository.save(engagement);
         }
         else{
-            metadata.setOpens(metadata.getOpens() + 1);
+            Engagement existingEngagement = engagementRepository.findByProspectMetadataIdAndStepNumber(metadata.getId(), stepNumber + 1);
+            if(existingEngagement != null){
+                if(stepNumber + 1 == existingEngagement.getStepNumber()){
+                    existingEngagement.setOpens(existingEngagement.getOpens() + 1);
+                    engagementRepository.save(existingEngagement);
+                }
+            }
+            else{
+                Engagement engagement = new Engagement();
+                engagement.setOpens(engagement.getOpens() + 1);
+                engagement.setStepNumber(stepNumber + 1);
+                engagement.setProspectMetadata(metadata);
+                engagements.add(engagement);
+                engagementRepository.save(engagement);
+            }
+
         }
         metadata.setStatus("Opened");
         prospectMetadataRepository.save(metadata);
@@ -86,12 +109,34 @@ public class TrackingService {
     public void trackClicks(String prospectId, String campaignId, Integer stepNumber, Integer mailNumber){
         //Set opens in prospect metadata
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
-        if(metadata.getOpens() == null){
-            metadata.setClicks(1);
+        List<Engagement> engagements = engagementRepository.findByProspectMetadataId(metadata.getId());
+        if(engagements.isEmpty()){
+            Engagement engagement = new Engagement();
+            engagement.setClicks(engagement.getClicks() + 1);
+            engagement.setStepNumber(stepNumber + 1);
+            engagement.setProspectMetadata(metadata);
+            engagements.add(engagement);
+            engagementRepository.save(engagement);
         }
         else{
-            metadata.setClicks(metadata.getOpens() + 1);
+            Engagement existingEngagement = engagementRepository.findByProspectMetadataIdAndStepNumber(metadata.getId(), stepNumber + 1);
+            if(existingEngagement != null){
+                if(stepNumber + 1 == existingEngagement.getStepNumber()){
+                    existingEngagement.setClicks(existingEngagement.getClicks() + 1);
+                    engagementRepository.save(existingEngagement);
+                }
+            }
+            else{
+                Engagement engagement = new Engagement();
+                engagement.setClicks(engagement.getClicks() + 1);
+                engagement.setStepNumber(stepNumber + 1);
+                engagement.setProspectMetadata(metadata);
+                engagements.add(engagement);
+                engagementRepository.save(engagement);
+            }
+
         }
+        metadata.setStatus("Clicked");
         prospectMetadataRepository.save(metadata);
 
        //Set opens in step

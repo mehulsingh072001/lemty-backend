@@ -5,9 +5,11 @@ import java.util.*;
 import com.lemty.server.LemtyApplication;
 import com.lemty.server.domain.AppUser;
 import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Engagement;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.EngagementRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
 import com.lemty.server.repo.UserRepo;
@@ -37,9 +39,10 @@ public class CampaignService {
     private final UserRepo userRepo;
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final ProspectRepository prospectRepository;
+    private final EngagementRepository engagementRepository;
 
     @Autowired
-    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository){
+    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository){
         this.scheduler = scheduler;
         this.campaignRepository = campaignRepository;
         this.prospectService = prospectService;
@@ -47,6 +50,7 @@ public class CampaignService {
         this.stepService = stepService;
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.prospectRepository = prospectRepository;
+        this.engagementRepository = engagementRepository;
     }
 
     //List all campaigns
@@ -182,14 +186,15 @@ public class CampaignService {
 
         Page<ProspectMetadata> pageProspectMetadatas = prospectMetadataRepository.findByCampaignId(campaignId, paging);
         List<ProspectMetadata> prospectMetadatas = pageProspectMetadatas.getContent();
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
 
         for(int i=0; i < prospectMetadatas.size(); i++){
             ProspectMetadata prospectMetadata = prospectMetadatas.get(i);
+            List<Engagement> engagements = engagementRepository.findByProspectMetadataId(prospectMetadata.getId());
             Map<String, Object> prospectData = new HashMap<>();
             prospectData.put("lastCompletedStep", prospectMetadata.getLastCompletedStep());
             prospectData.put("prospect", prospectMetadata.getProspect());
             prospectData.put("status", prospectMetadata.getStatus());
+            prospectData.put("engagents", engagements);
             prospectDatas.add(prospectData);
         }
 

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +26,9 @@ public class ProspectMetadata implements Serializable {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<Engagement> engagements = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -103,6 +108,14 @@ public class ProspectMetadata implements Serializable {
 
     public void setReplies(Integer replies) {
         this.replies = replies;
+    }
+
+    public List<Engagement> getEngagements() {
+        return engagements;
+    }
+
+    public void setEngagements(List<Engagement> engagements) {
+        this.engagements = engagements;
     }
 
     @Override
