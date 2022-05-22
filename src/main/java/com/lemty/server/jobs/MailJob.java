@@ -1,6 +1,9 @@
 package com.lemty.server.jobs;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import com.lemty.server.domain.Campaign;
@@ -65,10 +68,12 @@ public class MailJob extends QuartzJobBean{
         String nextProspect = jobDataMap.getString("nextProspect");
         Integer prospectIndex = (Integer) jobDataMap.get("prospectIndex");
         String userId = jobDataMap.getString("userId");
+        Integer nextStepIndex = (Integer) jobDataMap.get("nextStepIndex");
+        Integer afterNextStepIndex = (Integer) jobDataMap.get("afterNextStepIndex");
 
-        sendMail(context, prospectId, campaignId, stepIndex, nextProspect, userId, prospectIndex);
+        sendMail(context, prospectId, campaignId, stepIndex, nextProspect, userId, prospectIndex, nextStepIndex, afterNextStepIndex);
     }
-    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepIndex, String nextProspect, String userId, Integer prospectIndex) {
+    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepIndex, String nextProspect, String userId, Integer prospectIndex, Integer nextStepIndex, Integer afterNextStepIndex) {
         //Get data from app
         Campaign campaign = campaignRepository.findById(campaignId).get();
         List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
@@ -154,6 +159,31 @@ public class MailJob extends QuartzJobBean{
                 e.printStackTrace();
             }
         }
+        else{
+            List<String> prospectIds = new ArrayList<>();
+            prospectIds.add(prospectId);
+            if(nextStepIndex != null){
+                Map<String, Object> nextStep = steps.get(nextStepIndex);
+
+                Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
+                Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
+                Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
+
+                ZoneId zoneId = ZoneId.of(campaign.getTimezone());
+                ZonedDateTime d = ZonedDateTime.now().withZoneSameInstant(zoneId);
+                String stringDateTime = String.format("%d-%02d-%02dT%02d:%02d:%02d", d.getYear(), d.getMonthValue(), (d.getDayOfMonth() + dayGap), (d.getHour() + hourGap), (d.getMinute() + minuteGap), d.getSecond());
+                LocalDateTime localDateTime = LocalDateTime.from(LocalDateTime.parse(stringDateTime).atZone(zoneId));
+                ZonedDateTime startDate2 = ZonedDateTime.of(localDateTime, zoneId);
+
+                JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, userId);
+                Trigger trigger = buildStepTrigger(jobDetail, campaignId, startDate2);
+                try {
+                    scheduler.scheduleJob(jobDetail, trigger);
+                } catch (SchedulerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         try {
             scheduler.deleteJob(context.getJobDetail().getKey());
         } catch (SchedulerException e) {
@@ -174,4 +204,28 @@ public class MailJob extends QuartzJobBean{
             )
  			.build();
  	}
+
+    private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, String userId){
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("prospectIds", prospectIds);
+        jobDataMap.put("campaignId", campaignId);
+        jobDataMap.put("nextStepIndex", nextStepIndex);
+        jobDataMap.put("stepIndex", stepIndex);
+        jobDataMap.put("userId", userId);
+        return JobBuilder.newJob(StepJob.class)
+                .withIdentity(UUID.randomUUID().toString(), stepIndex + "-" + campaignId)
+                .withDescription("Run Step Job")
+                .storeDurably()
+                .usingJobData(jobDataMap)
+                .build();
+    }
+
+    private Trigger buildStepTrigger(JobDetail jobDetail, String campaignId, ZonedDateTime startDate){
+        return TriggerBuilder.newTrigger()
+                .forJob(jobDetail)
+                .withIdentity(jobDetail.getKey().getName(), campaignId)
+                .withDescription("Step Scheduler")
+                .startAt(Date.from(startDate.toInstant()))
+                .build();
+    }
 }

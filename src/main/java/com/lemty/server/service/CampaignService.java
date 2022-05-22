@@ -194,7 +194,7 @@ public class CampaignService {
             prospectData.put("lastCompletedStep", prospectMetadata.getLastCompletedStep());
             prospectData.put("prospect", prospectMetadata.getProspect());
             prospectData.put("status", prospectMetadata.getStatus());
-            prospectData.put("engagents", engagements);
+            prospectData.put("engagements", engagements);
             prospectDatas.add(prospectData);
         }
 

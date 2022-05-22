@@ -60,7 +60,6 @@ public class TrackingService {
             }
 
         }
-        metadata.setStatus("Opened");
         prospectMetadataRepository.save(metadata);
 
        //Set opens in step
@@ -136,7 +135,6 @@ public class TrackingService {
             }
 
         }
-        metadata.setStatus("Clicked");
         prospectMetadataRepository.save(metadata);
 
        //Set opens in step
