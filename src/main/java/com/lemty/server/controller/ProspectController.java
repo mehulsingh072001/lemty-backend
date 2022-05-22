@@ -119,6 +119,7 @@ public class ProspectController{
         return prospectService.getProspectsNotInCampaign(userId, campaignId, page, size);
     }
 
+/*
     @GetMapping(path = "/campaign")
     public ResponseEntity<Map<String, Object>> getProspectsFromCampaign(
             @RequestParam("campaignId") String campaignId,
@@ -126,6 +127,18 @@ public class ProspectController{
             @RequestParam(defaultValue = "10") int size
             ){
         Map<String, Object> response = campaignService.generateCampaignProspects(campaignId, page, size);
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+    }
+*/
+
+    @GetMapping(path = "/campaign")
+    public ResponseEntity<Map<String, Object>> getProspectsFromCampaignByStatus(
+            @RequestParam("campaignId") String campaignId,
+            @RequestParam("status") String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Map<String, Object> response = campaignService.generateCampaignProspectsByStatus(campaignId, status, page, size);
         return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 

@@ -46,7 +46,7 @@ public class PreviewMailJob extends QuartzJobBean{
         String campaignId = jobDataMap.getString("campaignId");
         String nextProspect = jobDataMap.getString("nextProspect");
         Integer stepNumber = (Integer) jobDataMap.get("stepNumber");
-        Integer nextStep = (Integer) jobDataMap.get("stepNumber");
+        Integer nextStep = (Integer) jobDataMap.get("nextStep");
         Integer mailNumber = (Integer) jobDataMap.get("mailNumber");
         String window = jobDataMap.getString("window");
         String days = jobDataMap.getString("days");

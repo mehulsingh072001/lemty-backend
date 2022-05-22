@@ -205,4 +205,38 @@ public class CampaignService {
         response.put("totalPages", pageProspectMetadatas.getTotalPages());
         return response;
     }
+
+    public Map<String, Object> generateCampaignProspectsByStatus(String campaignId, String status, int page, int size){
+        List<Map<String, Object>> prospectDatas = new ArrayList<>();
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<ProspectMetadata> pageProspectMetadatas;
+        List<ProspectMetadata> prospectMetadatas;
+        if(Objects.equals(status, "ALL")){
+            pageProspectMetadatas = prospectMetadataRepository.findByCampaignId(campaignId, paging);
+            prospectMetadatas = pageProspectMetadatas.getContent();
+        }
+        else{
+            pageProspectMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, status, paging);
+            prospectMetadatas = pageProspectMetadatas.getContent();
+        }
+
+        for(int i=0; i < prospectMetadatas.size(); i++){
+            ProspectMetadata prospectMetadata = prospectMetadatas.get(i);
+            List<Engagement> engagements = engagementRepository.findByProspectMetadataId(prospectMetadata.getId());
+            Map<String, Object> prospectData = new HashMap<>();
+            prospectData.put("lastCompletedStep", prospectMetadata.getLastCompletedStep());
+            prospectData.put("prospect", prospectMetadata.getProspect());
+            prospectData.put("status", prospectMetadata.getStatus());
+            prospectData.put("engagements", engagements);
+            prospectDatas.add(prospectData);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospectDatas", prospectDatas);
+        response.put("currentPage", pageProspectMetadatas.getNumber());
+        response.put("totalElements", pageProspectMetadatas.getTotalElements());
+        response.put("totalPages", pageProspectMetadatas.getTotalPages());
+        return response;
+    }
 }
