@@ -3,28 +3,25 @@ package com.lemty.server.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
-public class ProspectMetadata {
+public class ProspectMetadata implements Serializable {
     @Id
     @Column(name = "id", length = 8, unique = true, nullable = false)
     private String id = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     private String campaignId;
     // private String prospectId;
-    private String status;
     private Integer lastCompletedStep;
     private String threadId;
     private Integer opens = 0;
     private Integer clicks = 0;
     private Integer replies = 0;
-    private Boolean contacted = false;
-    private Boolean bounced = false;
-    private Boolean replied = false;
-    private Boolean unsubscribed = false;
+    private String status = "In Campaign";
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
@@ -106,38 +103,6 @@ public class ProspectMetadata {
 
     public void setReplies(Integer replies) {
         this.replies = replies;
-    }
-
-    public Boolean getContacted() {
-        return contacted;
-    }
-
-    public void setContacted(Boolean contacted) {
-        this.contacted = contacted;
-    }
-
-    public Boolean getBounced() {
-        return bounced;
-    }
-
-    public void setBounced(Boolean bounced) {
-        this.bounced = bounced;
-    }
-
-    public Boolean getReplied() {
-        return replied;
-    }
-
-    public void setReplied(Boolean replied) {
-        this.replied = replied;
-    }
-
-    public Boolean getUnsubscribed() {
-        return unsubscribed;
-    }
-
-    public void setUnsubscribed(Boolean unsubscribed) {
-        this.unsubscribed = unsubscribed;
     }
 
     @Override

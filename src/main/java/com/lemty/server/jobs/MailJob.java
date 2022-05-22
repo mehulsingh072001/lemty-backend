@@ -122,6 +122,7 @@ public class MailJob extends QuartzJobBean{
             metadata.setThreadId(newThreadId);
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
+            metadata.setStatus("CONTACTED");
         }
         else{
             threadId = metadata.getThreadId();

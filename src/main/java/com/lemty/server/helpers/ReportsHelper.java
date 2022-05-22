@@ -12,6 +12,8 @@ import com.lemty.server.service.StepService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -48,15 +50,17 @@ public class ReportsHelper {
     }
 
     public Map<String, Object> campaignOverview(String campaignId){
-        List<ProspectMetadata> inCampaignMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "In Campaign");
-        List<ProspectMetadata> completedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Completed - No Reply");
-        List<ProspectMetadata> stoppedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Stopped");
-        List<ProspectMetadata> openedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Opened");
-        List<ProspectMetadata> repliedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Replied");
-        List<ProspectMetadata> clickedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Clicked");
+        Pageable paging = PageRequest.of(0, Integer.MAX_VALUE);
 
-        List<ProspectMetadata> bouncedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Bounced");
-        List<ProspectMetadata> unsubscribedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatus(campaignId, "Unsubscribed");
+        List<ProspectMetadata> inCampaignMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "IN_CAMPAIGN", paging).getContent();
+        List<ProspectMetadata> completedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "COMPLETED_WITHOUT_REPLY", paging).getContent();
+        List<ProspectMetadata> stoppedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "STOPPED", paging).getContent();
+        List<ProspectMetadata> openedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "OPENED", paging).getContent();
+        List<ProspectMetadata> repliedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "REPLIED", paging).getContent();
+        List<ProspectMetadata> clickedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "CLICKED", paging).getContent();
+
+        List<ProspectMetadata> bouncedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "BOUNCED", paging).getContent();
+        List<ProspectMetadata> unsubscribedMetadatas = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "UNSUBSCRIBED", paging).getContent();
         Integer totalProspects = prospectService.totalNumberofProspectsCampaign(campaignId);
 
         Map<String, Object> overview = new HashMap<>();

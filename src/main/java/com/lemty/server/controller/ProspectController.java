@@ -120,47 +120,23 @@ public class ProspectController{
     }
 
     @GetMapping(path = "/campaign")
-    public Map<String, Object> getProspectsFromCampaign(
+    public ResponseEntity<Map<String, Object>> getProspectsFromCampaign(
             @RequestParam("campaignId") String campaignId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
             ){
-        return prospectService.getProspectsFromCampaign(campaignId, page, size);
+        Map<String, Object> response = campaignService.generateCampaignProspects(campaignId, page, size);
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "/campaign/counts")
+    public Map<String, Integer> getProspectCountsStatus(@RequestParam("campaignId") String campaignId){
+        return campaignService.getProspectCountsStatus(campaignId);
     }
 
     @GetMapping(path = "/campaign/total")
     public int totalProspectsCampaign(@RequestParam("campaignId") String campaignId){
         return prospectService.totalNumberofProspectsCampaign(campaignId);
-    }
-
-    @GetMapping(path = "/campaign/counts")
-    public Map<String, Integer> getProspectCountsCampaign(@RequestParam("campaignId") String campaignId){
-        return campaignService.getProspectCountsCampaign(campaignId);
-    }
-
-    @GetMapping(path = "/campaign/not-contacted")
-    public ResponseEntity<Map<String, Object>> getNotContactedProspects(@RequestParam("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(campaignService.getNotContactedProspects(campaignId, page, size), HttpStatus.ACCEPTED);
-    }
-
-    @GetMapping(path = "/campaign/bounced")
-    public ResponseEntity<Map<String, Object>> getBouncedProspects(@RequestParam("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(campaignService.getBouncedProspects(campaignId, page, size), HttpStatus.ACCEPTED);
-    }
-
-    @GetMapping(path = "/campaign/replied")
-    public ResponseEntity<Map<String, Object>> getRepliedProspects(@RequestParam("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(campaignService.getRepliedProspects(campaignId, page, size), HttpStatus.ACCEPTED);
-    }
-
-    @GetMapping(path = "/campaign/not-replied")
-    public ResponseEntity<Map<String, Object>> getNotRepliedProspects(@RequestParam("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(campaignService.getNotRepliedProspects(campaignId, page, size), HttpStatus.ACCEPTED);
-    }
-
-    @GetMapping(path = "/campaign/unsubscribed")
-    public ResponseEntity<Map<String, Object>> getUnsubscribedProspects(@RequestParam("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(campaignService.getUnsubsubscribedProspects(campaignId, page, size), HttpStatus.ACCEPTED);
     }
 
     @PostMapping

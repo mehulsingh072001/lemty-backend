@@ -11,14 +11,8 @@ import java.util.List;
 
 @Repository
 public interface ProspectMetadataRepository extends JpaRepository<ProspectMetadata, String> {
-    List<ProspectMetadata> findByCampaignId(String campaignId);
-
+    Page<ProspectMetadata> findByCampaignId(String campaignId, Pageable page);
     ProspectMetadata findByProspectIdAndCampaignId(String prospectId, String campaignId);
-    List<ProspectMetadata> findByCampaignIdAndStatus(String campaignId, String status);
-    Page<ProspectMetadata> findByCampaignIdAndBouncedTrue(String campaignId, Pageable pageable);
-    Page<ProspectMetadata> findByCampaignIdAndContactedFalse(String campaignId, Pageable pageable);
-    Page<ProspectMetadata> findByCampaignIdAndRepliedTrue(String campaignId, Pageable pageable);
-    Page<ProspectMetadata> findByCampaignIdAndRepliedFalse(String campaignId, Pageable pageable);
-    Page<ProspectMetadata> findByCampaignIdAndUnsubscribedTrue(String campaignId, Pageable pageable);
+    Page<ProspectMetadata> findByCampaignIdAndStatusIs(String campaignId, String status, Pageable pageable);
     void deleteAllByCampaignId(String campaignId);
 }

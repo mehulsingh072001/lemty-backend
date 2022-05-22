@@ -76,7 +76,7 @@ public class Prospect{
     )
     private List<Campaign> campaigns = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(cascade = CascadeType.REMOVE)
     private List<ProspectMetadata> prospectMetadatas = new ArrayList<>();
 
     public Prospect(String firstName,

@@ -152,112 +152,52 @@ public class CampaignService {
         }
     }
 
-    public Map<String, Object> getNotContactedProspects(String campaignId, int page, int size){
-        Pageable paging = PageRequest.of(page, size);
-
-        Page<ProspectMetadata> pageProspects;
-        pageProspects = prospectMetadataRepository.findByCampaignIdAndContactedFalse(campaignId, paging);
-        List<Prospect> prospects = new ArrayList<>();
-        for(int i=0; i < pageProspects.getContent().size(); i++){
-            prospects.add(pageProspects.getContent().get(i).getProspect());
-        }
-        Map<String, Object> response = new HashMap<>();
-        response.put("prospects", prospects);
-        response.put("currentPage", pageProspects.getNumber());
-        response.put("totalElements", pageProspects.getTotalElements());
-        response.put("totalPages", pageProspects.getTotalPages());
-        return response;
-    }
-
-    public Map<String, Object> getBouncedProspects(String campaignId, int page, int size){
-        Pageable paging = PageRequest.of(page, size);
-
-        Page<ProspectMetadata> pageProspects;
-        pageProspects = prospectMetadataRepository.findByCampaignIdAndBouncedTrue(campaignId, paging);
-        List<Prospect> prospects = new ArrayList<>();
-        for(int i=0; i < pageProspects.getContent().size(); i++){
-            prospects.add(pageProspects.getContent().get(i).getProspect());
-        }
-        Map<String, Object> response = new HashMap<>();
-        response.put("prospects", prospects);
-        response.put("currentPage", pageProspects.getNumber());
-        response.put("totalElements", pageProspects.getTotalElements());
-        response.put("totalPages", pageProspects.getTotalPages());
-        return response;
-    }
-
-    public Map<String, Object> getRepliedProspects(String campaignId, int page, int size){
-        Pageable paging = PageRequest.of(page, size);
-
-        Page<ProspectMetadata> pageProspects;
-        pageProspects = prospectMetadataRepository.findByCampaignIdAndRepliedTrue(campaignId, paging);
-        List<Prospect> prospects = new ArrayList<>();
-        for(int i=0; i < pageProspects.getContent().size(); i++){
-            prospects.add(pageProspects.getContent().get(i).getProspect());
-        }
-        Map<String, Object> response = new HashMap<>();
-        response.put("prospects", prospects);
-        response.put("currentPage", pageProspects.getNumber());
-        response.put("totalElements", pageProspects.getTotalElements());
-        response.put("totalPages", pageProspects.getTotalPages());
-        return response;
-    }
-
-    public Map<String, Object> getNotRepliedProspects(String campaignId, int page, int size){
-        Pageable paging = PageRequest.of(page, size);
-
-        Page<ProspectMetadata> pageProspects;
-        pageProspects = prospectMetadataRepository.findByCampaignIdAndRepliedFalse(campaignId, paging);
-        List<Prospect> prospects = new ArrayList<>();
-        for(int i=0; i < pageProspects.getContent().size(); i++){
-            prospects.add(pageProspects.getContent().get(i).getProspect());
-        }
-        Map<String, Object> response = new HashMap<>();
-        response.put("prospects", prospects);
-        response.put("currentPage", pageProspects.getNumber());
-        response.put("totalElements", pageProspects.getTotalElements());
-        response.put("totalPages", pageProspects.getTotalPages());
-        return response;
-    }
-
-    public Map<String, Object> getUnsubsubscribedProspects(String campaignId, int page, int size){
-        Pageable paging = PageRequest.of(page, size);
-
-        Page<ProspectMetadata> pageProspects;
-        pageProspects = prospectMetadataRepository.findByCampaignIdAndUnsubscribedTrue(campaignId, paging);
-        List<Prospect> prospects = new ArrayList<>();
-        for(int i=0; i < pageProspects.getContent().size(); i++){
-            prospects.add(pageProspects.getContent().get(i).getProspect());
-        }
-        Map<String, Object> response = new HashMap<>();
-        response.put("prospects", prospects);
-        response.put("currentPage", pageProspects.getNumber());
-        response.put("totalElements", pageProspects.getTotalElements());
-        response.put("totalPages", pageProspects.getTotalPages());
-        return response;
-    }
-
-    public Map<String, Integer> getProspectCountsCampaign(String campaignId){
+    public Map<String, Integer> getProspectCountsStatus(String campaignId){
         Map<String, Integer> prospectCounts = new HashMap<>();
         Pageable paging = PageRequest.of(0, Integer.MAX_VALUE);
 
-        Page<Prospect> pageProspects;
-        pageProspects = prospectRepository.findByCampaignsId(campaignId, paging);
-        Page<ProspectMetadata> bouncedMetadatas = prospectMetadataRepository.findByCampaignIdAndBouncedTrue(campaignId, paging);
-        Page<ProspectMetadata> unsubscribedMetadatas = prospectMetadataRepository.findByCampaignIdAndUnsubscribedTrue(campaignId, paging);
-        Page<ProspectMetadata> notContactedMetadatas = prospectMetadataRepository.findByCampaignIdAndContactedFalse(campaignId, paging);
-        Page<ProspectMetadata> repliedMetadatas = prospectMetadataRepository.findByCampaignIdAndRepliedTrue(campaignId, paging);
-        Page<ProspectMetadata> notRepliedMetadatas = prospectMetadataRepository.findByCampaignIdAndRepliedFalse(campaignId, paging);
+        Page<ProspectMetadata> pageProspects;
+        pageProspects = prospectMetadataRepository.findByCampaignId(campaignId, paging);
+        Page<ProspectMetadata> inCampaign= prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "IN_CAMPAIGN", paging);
+        Page<ProspectMetadata> completedWithoutReply = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "COMPLETED_WITHOUT_REPLY", paging);
+        Page<ProspectMetadata> unsubscribed = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "UNSUBSCRIBED",paging);
+        Page<ProspectMetadata> bounced = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "BOUNCED", paging);
+        Page<ProspectMetadata> replied = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "REPLIED", paging);
+        Page<ProspectMetadata> stopped = prospectMetadataRepository.findByCampaignIdAndStatusIs(campaignId, "STOPPED", paging);
 
         prospectCounts.put("all", pageProspects.getContent().size());
-        prospectCounts.put("bounced", bouncedMetadatas.getContent().size());
-        prospectCounts.put("unsubscribed", unsubscribedMetadatas.getContent().size());
-        prospectCounts.put("not_contacted", notContactedMetadatas.getContent().size());
-        prospectCounts.put("replied", repliedMetadatas.getContent().size());
-        prospectCounts.put("not_replied", notRepliedMetadatas.getContent().size());
+        prospectCounts.put("inCampaign", inCampaign.getContent().size());
+        prospectCounts.put("completedWithoutReply", completedWithoutReply.getContent().size());
+        prospectCounts.put("unsubscribed", unsubscribed.getContent().size());
+        prospectCounts.put("bounced", bounced.getContent().size());
+        prospectCounts.put("replied", replied.getContent().size());
+        prospectCounts.put("stopped", stopped.getContent().size());
 
         return prospectCounts;
     }
 
+    public Map<String, Object> generateCampaignProspects(String campaignId, int page, int size){
+        List<Map<String, Object>> prospectDatas = new ArrayList<>();
+        Pageable paging = PageRequest.of(page, size);
 
+        Page<ProspectMetadata> pageProspectMetadatas = prospectMetadataRepository.findByCampaignId(campaignId, paging);
+        List<ProspectMetadata> prospectMetadatas = pageProspectMetadatas.getContent();
+        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+
+        for(int i=0; i < prospectMetadatas.size(); i++){
+            ProspectMetadata prospectMetadata = prospectMetadatas.get(i);
+            Map<String, Object> prospectData = new HashMap<>();
+            prospectData.put("lastCompletedStep", prospectMetadata.getLastCompletedStep());
+            prospectData.put("prospect", prospectMetadata.getProspect());
+            prospectData.put("status", prospectMetadata.getStatus());
+            prospectDatas.add(prospectData);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("prospectDatas", prospectDatas);
+        response.put("currentPage", pageProspectMetadatas.getNumber());
+        response.put("totalElements", pageProspectMetadatas.getTotalElements());
+        response.put("totalPages", pageProspectMetadatas.getTotalPages());
+        return response;
+    }
 }

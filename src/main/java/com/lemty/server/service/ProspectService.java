@@ -194,7 +194,7 @@ public class ProspectService {
             List<ProspectMetadata> metadatas = prospect.getProspectMetadatas();
             ProspectMetadata metadata = new ProspectMetadata();
             metadata.setCampaignId(campaignId);
-            metadata.setStatus("In Campaign");
+            metadata.setStatus("IN_CAMPAIGN");
             metadata.setProspect(prospect);
             prospectMetadataRepository.save(metadata);
             metadatas.add(metadata);
@@ -220,17 +220,13 @@ public class ProspectService {
 
             prospect.setCampaigns(campaigns);
 
-            List<ProspectMetadata> metadatas = prospect.getProspectMetadatas();
-
             ProspectMetadata metadata = new ProspectMetadata();
             metadata.setCampaignId(campaignId);
             metadata.setProspect(prospect);
-            metadata.setStatus("In Campaign");
+            metadata.setStatus("IN_CAMPAIGN");
             metadata.setProspect(prospect);
 
             prospectMetadataRepository.save(metadata);
-            metadatas.add(metadata);
-            prospect.setProspectMetadatas(metadatas);
             prospects.add(prospect);
         }
         prospectRepository.saveAllAndFlush(prospects);
