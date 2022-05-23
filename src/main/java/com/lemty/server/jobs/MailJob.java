@@ -159,29 +159,27 @@ public class MailJob extends QuartzJobBean{
                 e.printStackTrace();
             }
         }
-        else{
-            List<String> prospectIds = new ArrayList<>();
-            prospectIds.add(prospectId);
-            if(nextStepIndex != null){
-                Map<String, Object> nextStep = steps.get(nextStepIndex);
+        List<String> prospectIds = new ArrayList<>();
+        prospectIds.add(prospectId);
+        if(nextStepIndex != 0){
+            Map<String, Object> nextStep = steps.get(nextStepIndex);
 
-                Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
-                Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
-                Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
+            Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
+            Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
+            Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
 
-                ZoneId zoneId = ZoneId.of(campaign.getTimezone());
-                ZonedDateTime d = ZonedDateTime.now().withZoneSameInstant(zoneId);
-                String stringDateTime = String.format("%d-%02d-%02dT%02d:%02d:%02d", d.getYear(), d.getMonthValue(), (d.getDayOfMonth() + dayGap), (d.getHour() + hourGap), (d.getMinute() + minuteGap), d.getSecond());
-                LocalDateTime localDateTime = LocalDateTime.from(LocalDateTime.parse(stringDateTime).atZone(zoneId));
-                ZonedDateTime startDate2 = ZonedDateTime.of(localDateTime, zoneId);
+            ZoneId zoneId = ZoneId.of(campaign.getTimezone());
+            ZonedDateTime d = ZonedDateTime.now().withZoneSameInstant(zoneId);
+            String stringDateTime = String.format("%d-%02d-%02dT%02d:%02d:%02d", d.getYear(), d.getMonthValue(), (d.getDayOfMonth() + dayGap), (d.getHour() + hourGap), (d.getMinute() + minuteGap), d.getSecond());
+            LocalDateTime localDateTime = LocalDateTime.from(LocalDateTime.parse(stringDateTime).atZone(zoneId));
+            ZonedDateTime startDate2 = ZonedDateTime.of(localDateTime, zoneId);
 
-                JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, userId);
-                Trigger trigger = buildStepTrigger(jobDetail, campaignId, startDate2);
-                try {
-                    scheduler.scheduleJob(jobDetail, trigger);
-                } catch (SchedulerException e) {
-                    e.printStackTrace();
-                }
+            JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, userId);
+            Trigger trigger = buildStepTrigger(jobDetail, campaignId, startDate2);
+            try {
+                scheduler.scheduleJob(jobDetail, trigger);
+            } catch (SchedulerException e) {
+                e.printStackTrace();
             }
         }
         try {
@@ -213,7 +211,7 @@ public class MailJob extends QuartzJobBean{
         jobDataMap.put("stepIndex", stepIndex);
         jobDataMap.put("userId", userId);
         return JobBuilder.newJob(StepJob.class)
-                .withIdentity(UUID.randomUUID().toString(), stepIndex + "-" + campaignId)
+                .withIdentity(UUID.randomUUID().toString(), campaignId)
                 .withDescription("Run Step Job")
                 .storeDurably()
                 .usingJobData(jobDataMap)

@@ -228,7 +228,7 @@ public class PreviewStartJob extends QuartzJobBean {
         jobDataMap.put("stepIndex", stepIndex);
         jobDataMap.put("userId", userId);
         return JobBuilder.newJob(StepJob.class)
-             .withIdentity(UUID.randomUUID().toString(), stepIndex + "-" + campaignId)
+             .withIdentity(UUID.randomUUID().toString(), campaignId)
              .withDescription("Run Step Job")
              .storeDurably()
              .usingJobData(jobDataMap)

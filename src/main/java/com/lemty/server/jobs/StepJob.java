@@ -98,39 +98,10 @@ public class StepJob extends QuartzJobBean {
         }
         String str = joiner.toString();
 
-/*
-        //add nextstepJob
-        try{
-            if(nextStepIndex != null){
-                Integer AfterNextStepIndex;
-                if((nextStepIndex + 1) == steps.size()){
-                    AfterNextStepIndex = null;
-                }
-                else{
-                    AfterNextStepIndex = nextStepIndex + 1;
-                }
-                Map<String, Object> nextStep = steps.get(nextStepIndex);
-                Integer stepNumber = (Integer) nextStep.get("stepNumber").getClass().cast(nextStep.get("stepNumber"));
-
-                Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
-                Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
-                Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
-
-                JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, AfterNextStepIndex, stepNumber, userId);
-                nextJobKey = jobDetail.getKey();
-                scheduler.addJob(jobDetail, true);
-            }
-            scheduler.deleteJob(context.getJobDetail().getKey());
-        }
-        catch(SchedulerException e){
-            e.printStackTrace();
-        }
-*/
-
-        Integer afterNextStepIndex = null;
-        if(nextStepIndex != null){
+        Integer afterNextStepIndex = 0;
+        if(nextStepIndex != 0){
             if((nextStepIndex + 1) == steps.size()){
-                afterNextStepIndex = null;
+                afterNextStepIndex = 0;
             }
             else{
                 afterNextStepIndex = nextStepIndex + 1;
@@ -145,7 +116,7 @@ public class StepJob extends QuartzJobBean {
                 nextProspect = prospectIds.get(i + 1);
             }
             else{
-                nextProspect = null;
+                nextProspect = "";
             }
 
             try {
@@ -157,9 +128,10 @@ public class StepJob extends QuartzJobBean {
         }
 
         //Trigger Mail Job
-        JobKey jobKey = new JobKey(prospectIds.get(0) + "-" + (stepIndex + 1) + "-" + campaignId, stepIndex + "-" + campaignId);
+        JobKey jobKey = new JobKey(prospectIds.get(0) + "-" + (stepIndex + 1) + "-" + campaignId, campaignId);
         try {
             JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+            logger.info(String.valueOf(jobDetail));
             Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window);
             scheduler.scheduleJob(trigger);
             scheduler.deleteJob(context.getJobDetail().getKey());
@@ -180,7 +152,7 @@ public class StepJob extends QuartzJobBean {
          jobDataMap.put("afterNextStepIndex", afterNextStepIndex);
 
         return JobBuilder.newJob(MailJob.class)
-            .withIdentity(prospectId + "-" + (stepIndex + 1) + "-" + campaignId, stepIndex + "-" + campaignId)
+            .withIdentity(prospectId + "-" + (stepIndex + 1) + "-" + campaignId, campaignId)
             .withDescription("Mail Job")
             .storeDurably()
             .usingJobData(jobDataMap)

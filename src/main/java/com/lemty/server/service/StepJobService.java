@@ -48,12 +48,11 @@ public class StepJobService {
         Integer stepIndex = 0;
         Integer nextStepIndex;
         if((stepIndex + 1) == steps.size()){
-            nextStepIndex = null;
+            nextStepIndex = 0;
         }
         else{
             nextStepIndex = stepIndex + 1;
         }
-
         try{
             JobDetail jobDetail = buildStepJobDetail(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId);
             Trigger trigger = buildTrigger(jobDetail, campaignId);
@@ -73,7 +72,7 @@ public class StepJobService {
         jobDataMap.put("stepIndex", stepIndex);
         jobDataMap.put("userId", userId);
         return JobBuilder.newJob(StepJob.class)
-             .withIdentity(UUID.randomUUID().toString(), stepIndex + "-" + campaignId)
+             .withIdentity(UUID.randomUUID().toString(), campaignId)
              .withDescription("Run Step Job")
              .storeDurably()
              .usingJobData(jobDataMap)

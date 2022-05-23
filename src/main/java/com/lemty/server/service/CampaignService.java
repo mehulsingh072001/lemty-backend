@@ -121,14 +121,12 @@ public class CampaignService {
         prospectService.removeProspectFromCampaign(campaignId);
 
         List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
-        for(int i=0; i < steps.size(); i++){
-            try {
-                Set<JobKey> keys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(i + "-" +campaignId));
-                List<JobKey> jobKeys = new ArrayList<JobKey>(keys);
-                scheduler.deleteJobs(jobKeys);
-            } catch (SchedulerException e) {
-                e.printStackTrace();
-            }
+        try {
+            Set<JobKey> keys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(campaignId));
+            List<JobKey> jobKeys = new ArrayList<JobKey>(keys);
+            scheduler.deleteJobs(jobKeys);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
         }
 
         campaignRepository.deleteById(campaignId);
