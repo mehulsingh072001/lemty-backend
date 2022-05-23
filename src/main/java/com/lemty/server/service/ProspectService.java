@@ -167,7 +167,6 @@ public class ProspectService {
             }
          }
          Map<String, Object> data = new HashMap<>();
-
          data.put("prospects", prospectsNotInCampaign);
          data.put("totalElements", pageProspects.getTotalElements());
          data.put("totalPages", pageProspects.getTotalPages());
