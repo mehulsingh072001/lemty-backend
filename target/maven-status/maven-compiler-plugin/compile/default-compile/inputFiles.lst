@@ -1,3 +1,4 @@
+/home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/domain/Emails.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/helpers/CsvHelper.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/GmailCredsRepo.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/MailRepo.java

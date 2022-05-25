@@ -136,29 +136,18 @@ public class MailJob extends QuartzJobBean{
             prospectMetadataRepository.save(metadata);
         }
 
-        String interval;
+        // if(nextProspect != null){
+        //     try {
+        //         JobKey jobKey = new JobKey(nextProspect + "-" + stepNumber + "-" + campaignId, stepIndex + "-" +campaignId);
+        //         logger.info(String.valueOf(jobKey));
+        //         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
 
-        if(deliveribilitySettings.getEmailInterval().equals("random")){
-            Random r = new Random();
-            int result = r.nextInt(maxSeconds - minSeconds) + minSeconds;
-            interval = String.valueOf(result);
-        }
-        else{
-            interval = String.valueOf(seconds / 60);
-        }
-
-        if(nextProspect != null){
-            try {
-                JobKey jobKey = new JobKey(nextProspect + "-" + stepNumber + "-" + campaignId, stepIndex + "-" +campaignId);
-                logger.info(String.valueOf(jobKey));
-                JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-
-                Trigger trigger = buildTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, Date.from(Instant.now()), interval);
-                scheduler.scheduleJob(trigger);
-            } catch (SchedulerException e) {
-                e.printStackTrace();
-            }
-        }
+        //         Trigger trigger = buildTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, Date.from(Instant.now()), interval);
+        //         scheduler.scheduleJob(trigger);
+        //     } catch (SchedulerException e) {
+        //         e.printStackTrace();
+        //     }
+        // }
         List<String> prospectIds = new ArrayList<>();
         prospectIds.add(prospectId);
         if(nextStepIndex != 0){
