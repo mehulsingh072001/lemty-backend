@@ -36,8 +36,8 @@ public class GmailController{
         String code = "code="+fcode+"&";
         String client_id = "client_id=1087727582839-72qgrk3g3ea46kq65coo7lbgg3f5cteg.apps.googleusercontent.com&";
         String client_secret = "client_secret=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&";
-        //String redirect_uri = "redirect_uri=http://localhost:8080/api/gmail/redirect&";
-        String redirect_uri = "redirect_uri=http://localhost:3000/redirect&";
+        // String redirect_uri = "redirect_uri=http://localhost:3000/redirect&";
+        String redirect_uri = "redirect_uri=https://main--capable-puppy-02c86f.netlify.app/redirect&";
         String grant_type = "grant_type=authorization_code&";
 
         headers.setContentType(MediaType.APPLICATION_JSON);
