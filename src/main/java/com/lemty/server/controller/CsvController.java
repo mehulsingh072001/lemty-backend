@@ -1,17 +1,16 @@
 package com.lemty.server.controller;
 
 import com.lemty.server.LemtyApplication;
-import com.lemty.server.domain.Prospect;
 import com.lemty.server.service.CsvService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RestController
@@ -34,23 +33,23 @@ public class CsvController {
     }
 
     @PostMapping("/csvToProspects")
-    public List<Prospect> csvToProspects(@RequestParam("file") MultipartFile file, 
-            @RequestParam("firstName") String firstName,
-            @RequestParam("lastName") String lastName,
-            @RequestParam("prospectEmail") String prospectEmail,
-            @RequestParam("prospectCompany") String prospectCompany,
-            @RequestParam("prospectMobileNumber") String prospectMobileNumber,
-            @RequestParam("prospectAccount") String prospectAccount,
-            @RequestParam("prospectCompanyEmail") String prospectCompanyEmail,
-            @RequestParam("prospectDepartment") String prospectDepartment,
-            @RequestParam("prospectTitle") String prospectTitle,
-            @RequestParam("prospectCompanyDomain") String prospectCompanyDomain,
-            @RequestParam("prospectLinkedinUrl") String prospectLinkedinUrl,
-            @RequestParam("prospectTwitterUrl") String prospectTwitterUrl,
-            @RequestParam("prospectLocation") String prospectLocation,
-            @RequestParam("prospectCountry") String prospectCountry,
-            @RequestParam("listId") String listId,
-            @RequestParam("userId") String userId)
+    public Map<String, Object> csvToProspects(@RequestParam("file") MultipartFile file,
+                                              @RequestParam("firstName") String firstName,
+                                              @RequestParam("lastName") String lastName,
+                                              @RequestParam("prospectEmail") String prospectEmail,
+                                              @RequestParam("prospectCompany") String prospectCompany,
+                                              @RequestParam("prospectMobileNumber") String prospectMobileNumber,
+                                              @RequestParam("prospectAccount") String prospectAccount,
+                                              @RequestParam("prospectCompanyEmail") String prospectCompanyEmail,
+                                              @RequestParam("prospectDepartment") String prospectDepartment,
+                                              @RequestParam("prospectTitle") String prospectTitle,
+                                              @RequestParam("prospectCompanyDomain") String prospectCompanyDomain,
+                                              @RequestParam("prospectLinkedinUrl") String prospectLinkedinUrl,
+                                              @RequestParam("prospectTwitterUrl") String prospectTwitterUrl,
+                                              @RequestParam("prospectLocation") String prospectLocation,
+                                              @RequestParam("prospectCountry") String prospectCountry,
+                                              @RequestParam("listId") String listId,
+                                              @RequestParam("userId") String userId)
     {
         return csvService.csvToProspects(file,
                 firstName,

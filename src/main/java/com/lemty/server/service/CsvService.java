@@ -1,6 +1,5 @@
 package com.lemty.server.service;
 
-import com.lemty.server.domain.Prospect;
 import com.lemty.server.helpers.CsvHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CsvService {
@@ -39,23 +39,23 @@ public class CsvService {
         return null;
     }
 
-    public List<Prospect> csvToProspects(MultipartFile file, 
-            String firstNameHeader, 
-            String lastNameHeader, 
-            String prospectEmailHeader,
-            String prospectCompanyHeader,
-            String prospectMobileNumberHeader,
-            String prospectAccountHeader,
-            String prospectCompanyEmailHeader,
-            String prospectDepartmentHeader,
-            String prospectTitleHeader,
-            String prospectCompanyDomainHeader,
-            String prospectLinkedinurlHeader,
-            String prospectTwitterurlHeader,
-            String prospectLocationHeader,
-            String prospectCountryHeader,
-            String listId, 
-            String userId){
+    public Map<String, Object> csvToProspects(MultipartFile file,
+                                              String firstNameHeader,
+                                              String lastNameHeader,
+                                              String prospectEmailHeader,
+                                              String prospectCompanyHeader,
+                                              String prospectMobileNumberHeader,
+                                              String prospectAccountHeader,
+                                              String prospectCompanyEmailHeader,
+                                              String prospectDepartmentHeader,
+                                              String prospectTitleHeader,
+                                              String prospectCompanyDomainHeader,
+                                              String prospectLinkedinurlHeader,
+                                              String prospectTwitterurlHeader,
+                                              String prospectLocationHeader,
+                                              String prospectCountryHeader,
+                                              String listId,
+                                              String userId){
         try {
             return csvHelper.csvToProspects(file.getInputStream(), 
                     firstNameHeader, 

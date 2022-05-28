@@ -370,8 +370,8 @@ public class ProspectService {
                     }
                     campaignRepository.save(campaigns.get(j));
                 }
+                prospect.setCampaigns(null);
             }
-            prospect.setCampaigns(null);
             prospectRepository.save(prospect);
         }
         prospectRepository.deleteAllById(prospectId);
@@ -427,4 +427,8 @@ public class ProspectService {
         return prospectCounts;
     }
 
+    //Search
+    public List<Prospect> searchByKeyword(String keyword) {
+        return prospectRepository.findByKeyword(keyword.toLowerCase());
+    }
 }

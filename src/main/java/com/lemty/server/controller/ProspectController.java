@@ -174,4 +174,10 @@ public class ProspectController{
         prospectService.deleteMultipleProspects(prospectIds);
         return new ResponseEntity<>("Prospects Deleted", HttpStatus.ACCEPTED);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Prospect>> searchByKeyword(@RequestParam("keyword") String keyword){
+        List<Prospect> prospects = prospectService.searchByKeyword(keyword);
+        return new ResponseEntity<>(prospects, HttpStatus.ACCEPTED);
+    }
 }

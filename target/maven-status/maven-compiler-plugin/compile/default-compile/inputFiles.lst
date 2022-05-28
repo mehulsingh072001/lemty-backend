@@ -42,6 +42,7 @@
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/helpers/CampaignProspectGenerator.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/ProspectRepository.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/filter/CustomAuthenticationFilter.java
+/home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/repo/EmailsRepository.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/domain/EmailSignature.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/controller/ProspectListController.java
 /home/lucifer/Projects/softwares/lemty-backend/src/main/java/com/lemty/server/helpers/PlaceholderHelper.java

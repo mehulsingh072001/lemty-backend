@@ -35,6 +35,7 @@ com/lemty/server/helpers/PreviewGeneraterHelper.class
 com/lemty/server/repo/CampaignRepository.class
 com/lemty/server/repo/EmailSignatureRepository.class
 com/lemty/server/service/UserService.class
+com/lemty/server/repo/EmailsRepository.class
 com/lemty/server/domain/GmailCreds.class
 com/lemty/server/service/ProspectListService.class
 com/lemty/server/helpers/ReportsHelper.class
