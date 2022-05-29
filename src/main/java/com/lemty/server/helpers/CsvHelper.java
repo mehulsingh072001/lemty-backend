@@ -1,6 +1,7 @@
 package com.lemty.server.helpers;
 
 import com.lemty.server.domain.Prospect;
+import com.lemty.server.repo.ProspectRepository;
 import com.lemty.server.service.ProspectService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -10,9 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.lemty.server.LemtyApplication;
 
@@ -21,9 +20,11 @@ import com.lemty.server.LemtyApplication;
 public class CsvHelper {
     Logger logger = LoggerFactory.getLogger(LemtyApplication.class);
     private final ProspectService prospectService;
+    private final ProspectRepository prospectRepository;
 
-    public CsvHelper(ProspectService prospectService) {
+    public CsvHelper(ProspectService prospectService, ProspectRepository prospectRepository) {
         this.prospectService = prospectService;
+        this.prospectRepository = prospectRepository;
     }
 
     public List<String> getHeaders(InputStream is){
@@ -62,7 +63,7 @@ public class CsvHelper {
         return datas;
     }
 
-    public List<Prospect> csvToProspects(
+    public Map<String, Object> csvToProspects(
             InputStream is,
             String firstNameHeader,
             String lastNameHeader,
@@ -85,33 +86,47 @@ public class CsvHelper {
             BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             CSVParser csvFileParser = new CSVParser(br, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
             List<Prospect> prospects = new ArrayList<Prospect>();
+            List<Prospect> failedProspects = new ArrayList<>();
+            Map<String, Object> response = new HashMap<>();
 
             Iterable<CSVRecord> csvRecords = csvFileParser.getRecords();
             for(CSVRecord csvRecord : csvRecords){
-                if(!Objects.equals(csvRecord.get(firstNameHeader), "") && !Objects.equals(csvRecord.get(lastNameHeader), "") && !Objects.equals(csvRecord.get(prospectEmailHeader), "")){
-                    Prospect prospect = new Prospect(
-                            (Objects.equals(firstNameHeader, "empty")) ? null : csvRecord.get(firstNameHeader),
-                            (Objects.equals(lastNameHeader, "empty")) ? null : csvRecord.get(lastNameHeader),
-                            (Objects.equals(prospectEmailHeader, "empty")) ? null : csvRecord.get(prospectEmailHeader),
-                            (Objects.equals(prospectCompanyHeader, "empty")) ? null : csvRecord.get(prospectCompanyHeader),
-                            (Objects.equals(prospectMobileNumberHeader, "empty")) ? null : csvRecord.get(prospectMobileNumberHeader),
-                            (Objects.equals(prospectAccountHeader, "empty")) ? null : csvRecord.get(prospectAccountHeader),
-                            (Objects.equals(prospectCompanyEmailHeader, "empty")) ? null : csvRecord.get(prospectCompanyEmailHeader),
-                            (Objects.equals(prospectDepartmentHeader, "empty")) ? null : csvRecord.get(prospectDepartmentHeader),
-                            (Objects.equals(prospectTitleHeader, "empty")) ? null : csvRecord.get(prospectTitleHeader),
-                            (Objects.equals(prospectCompanyDomainHeader, "empty")) ? null : csvRecord.get(prospectCompanyDomainHeader),
-                            (Objects.equals(prospectLinkedinurlHeader, "empty")) ? null : csvRecord.get(prospectCompanyDomainHeader),
-                            (Objects.equals(prospectTwitterurlHeader, "empty")) ? null : csvRecord.get(prospectTwitterurlHeader),
-                            (Objects.equals(prospectLocationHeader, "empty")) ? null : csvRecord.get(prospectLocationHeader),
-                            (Objects.equals(prospectCountryHeader, "empty")) ? null : csvRecord.get(prospectCountryHeader)
-                            );
-                    prospects.add(prospect);
+                Prospect prospect = new Prospect(
+                        (Objects.equals(firstNameHeader, "")) ? null : csvRecord.get(firstNameHeader),
+                        (Objects.equals(lastNameHeader, "")) ? null : csvRecord.get(lastNameHeader),
+                        (Objects.equals(prospectEmailHeader, "")) ? null : csvRecord.get(prospectEmailHeader),
+                        (Objects.equals(prospectCompanyHeader, "")) ? null : csvRecord.get(prospectCompanyHeader),
+                        (Objects.equals(prospectMobileNumberHeader, "")) ? null : csvRecord.get(prospectMobileNumberHeader),
+                        (Objects.equals(prospectAccountHeader, "")) ? null : csvRecord.get(prospectAccountHeader),
+                        (Objects.equals(prospectCompanyEmailHeader, "")) ? null : csvRecord.get(prospectCompanyEmailHeader),
+                        (Objects.equals(prospectDepartmentHeader, "")) ? null : csvRecord.get(prospectDepartmentHeader),
+                        (Objects.equals(prospectTitleHeader, "")) ? null : csvRecord.get(prospectTitleHeader),
+                        (Objects.equals(prospectCompanyDomainHeader, "")) ? null : csvRecord.get(prospectCompanyDomainHeader),
+                        (Objects.equals(prospectLinkedinurlHeader, "")) ? null : csvRecord.get(prospectCompanyDomainHeader),
+                        (Objects.equals(prospectTwitterurlHeader, "")) ? null : csvRecord.get(prospectTwitterurlHeader),
+                        (Objects.equals(prospectLocationHeader, "")) ? null : csvRecord.get(prospectLocationHeader),
+                        (Objects.equals(prospectCountryHeader, "")) ? null : csvRecord.get(prospectCountryHeader)
+                );
+                if(
+                        Objects.equals(csvRecord.get(firstNameHeader), "")
+                                && Objects.equals(csvRecord.get(lastNameHeader), "")
+                ){
+                    failedProspects.add(prospect);
                 }
+                else{
+                    if(prospectRepository.existsByProspectEmail(prospect.getProspectEmail())){
+                        failedProspects.add(prospect);
+                    }
+                    else{
+                        prospects.add(prospect);
+                        prospectService.addNewProspect(prospect, listId, userId);
+                    }
+                }
+
             }
-            prospectService.addMultipleProspect(prospects, listId, userId);
-            return prospects;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            response.put("prospects", prospects);
+            response.put("failedProspects", failedProspects);
+            return response;
         } catch (IOException e) {
             e.printStackTrace();
         }

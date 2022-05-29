@@ -86,6 +86,10 @@ public class StepJob extends QuartzJobBean {
         Map<String, Object> step = steps.get(stepIndex);
         // String date = (String) step.get("startDate").getClass().cast(step.get("startDate"));
          // ZonedDateTime startDate = startDateHelper.dateParser(campaign, campaign.getTimezone(), dayGap, hourGap, minuteGap);
+        DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
+        int minSeconds = deliveribilitySettings.getMinInterval();
+        int maxSeconds = deliveribilitySettings.getMaxInterval();
+        int seconds = deliveribilitySettings.getSeconds();
         ZoneId zoneId = ZoneId.of(campaign.getTimezone());
 
         String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
@@ -108,8 +112,21 @@ public class StepJob extends QuartzJobBean {
             }
         }
 
+        ZonedDateTime currentZonedDateTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of(campaign.getTimezone()));
+
         for(int i=0; i < prospectIds.size(); i++){
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
+
+            Integer interval;
+
+            if(deliveribilitySettings.getEmailInterval().equals("random")){
+                Random r = new Random();
+                int result = r.nextInt(maxSeconds - minSeconds) + minSeconds;
+                interval = result;
+            }
+            else{
+                interval = seconds;
+            }
 
             String nextProspect;
             if((i + 1) < prospectIds.size()){
@@ -121,22 +138,13 @@ public class StepJob extends QuartzJobBean {
 
             try {
                 JobDetail jobDetail = buildMailJobDetail(campaignId, prospect.getId(), stepIndex, nextProspect, userId, i, nextStepIndex, afterNextStepIndex);
-                scheduler.addJob(jobDetail, true);
+                Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window, currentZonedDateTime);
+                scheduler.scheduleJob(jobDetail, trigger);
+                scheduler.deleteJob(context.getJobDetail().getKey());
             } catch (SchedulerException e) {
                 e.printStackTrace();
             }
-        }
-
-        //Trigger Mail Job
-        JobKey jobKey = new JobKey(prospectIds.get(0) + "-" + (stepIndex + 1) + "-" + campaignId, campaignId);
-        try {
-            JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-            logger.info(String.valueOf(jobDetail));
-            Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window);
-            scheduler.scheduleJob(trigger);
-            scheduler.deleteJob(context.getJobDetail().getKey());
-        } catch (SchedulerException e) {
-            e.printStackTrace();
+            currentZonedDateTime = currentZonedDateTime.plusSeconds(interval);
         }
     }
 
@@ -159,11 +167,11 @@ public class StepJob extends QuartzJobBean {
             .build();
     }
 
- 	private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window){
+ 	private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, ZonedDateTime startDate){
  		return TriggerBuilder.newTrigger()
  			.forJob(jobDetail)
 			.withIdentity(jobDetail.getKey().getName(), campaignId)
-            // .startAt(Date.from(startDate.toInstant()))
+            .startAt(Date.from(startDate.toInstant()))
  			.withDescription("Mail Job")
             .withSchedule(CronScheduleBuilder
                 .cronSchedule("5 * " + window + "  ? * " + days)

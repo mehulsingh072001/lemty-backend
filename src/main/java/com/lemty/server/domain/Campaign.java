@@ -54,6 +54,9 @@ public class Campaign{
     @JoinColumn(name = "app_user_id")
     private AppUser appUser;
 
+    @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<Emails> emails = new ArrayList<>();
+
     public String getId() {
         return id;
     }

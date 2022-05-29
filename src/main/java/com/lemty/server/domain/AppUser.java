@@ -40,6 +40,9 @@ public class AppUser {
     @OneToOne(targetEntity = DeliveribilitySettings.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private DeliveribilitySettings deliveribilitySettings;
 
+    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Emails> emails;
+
     public AppUser (){}
 
     public AppUser(String id, String name, String username, String password, String role) {
