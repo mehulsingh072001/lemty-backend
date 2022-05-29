@@ -9,9 +9,7 @@ import com.lemty.server.jobPayload.MailRequest;
 import com.lemty.server.service.GmailCredsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,7 +28,7 @@ public class GmailController{
     }
 
     @GetMapping(path = "/get-token/{userId}", produces = "application/json")
-    public String getToken(@RequestParam Map<String, String> input, @PathVariable("userId") String userId){
+    public ResponseEntity<?> getToken(@RequestParam Map<String, String> input, @PathVariable("userId") String userId){
         String fcode = input.get("code");
 
         String code = "code="+fcode+"&";
@@ -53,7 +51,7 @@ public class GmailController{
         creds.setEmail(ud.get("emailAddress"));
         creds.setRefreshToken(response.get("refresh_token"));
         gmailCredsService.addNewCreds(creds, userId);
-         return "Success";
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 
     @GetMapping(path = "/access_token")
