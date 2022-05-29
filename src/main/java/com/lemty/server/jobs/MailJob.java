@@ -108,7 +108,7 @@ public class MailJob extends QuartzJobBean{
         }
 
         String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + prospectId + "/" + campaignId + "/" + stepIndex  + "/" + (prospectIndex % mails.size());
-        body = body + "<img src=" + openLink + "alt='pixel'>";
+        body = body + "<img src='" + openLink + "' alt='pixel'>";
 
         Integer stepNumber = (Integer) step.get("stepNumber").getClass().cast(step.get("stepNumber"));
         String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
