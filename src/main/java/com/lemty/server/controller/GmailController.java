@@ -51,7 +51,7 @@ public class GmailController{
         creds.setEmail(ud.get("emailAddress"));
         creds.setRefreshToken(response.get("refresh_token"));
         gmailCredsService.addNewCreds(creds, userId);
-        return new ResponseEntity<>(ud, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 
     @GetMapping(path = "/access_token")
