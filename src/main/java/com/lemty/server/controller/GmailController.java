@@ -52,7 +52,7 @@ public class GmailController{
         GmailCreds creds = new GmailCreds();
         creds.setEmail(ud.get("emailAddress"));
         creds.setRefreshToken(response.get("refresh_token"));
-         gmailCredsService.addNewCreds(creds, userId);
+        gmailCredsService.addNewCreds(creds, userId);
          return "Success";
     }
 
