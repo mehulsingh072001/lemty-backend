@@ -178,20 +178,6 @@ public class MailJob extends QuartzJobBean{
         }
     }
 
- 	private Trigger buildTrigger(JobDetail jobDetail, String days, String campaignId, String timezone, String window, Date startDate, String interval){
- 		return TriggerBuilder.newTrigger()
- 			.forJob(jobDetail)
-			.withIdentity(jobDetail.getKey().getName(), campaignId)
- 			.withDescription("Mail Job")
-            .startAt(startDate)
-            .withSchedule(CronScheduleBuilder
-                .cronSchedule("0 0/" +  (interval) + " " + (window) + "  ? * " + days)
-                .inTimeZone(TimeZone.getTimeZone(timezone))
-                .withMisfireHandlingInstructionFireAndProceed()
-            )
- 			.build();
- 	}
-
     private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, String userId){
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("prospectIds", prospectIds);
