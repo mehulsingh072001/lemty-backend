@@ -4,6 +4,7 @@ package com.lemty.server.controller;
 import com.lemty.server.service.TrackingService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,9 @@ public class TrackingController {
     }
 
     @GetMapping("/opens/{prospectId}/{campaignId}/{stepNumber}/{mailNumber}")
-    public void setOpens(@PathVariable("prospectId") String prospectId, @PathVariable("campaignId") String campaignId, @PathVariable("stepNumber") Integer stepNumber, @PathVariable("mailNumber") Integer mailNumber) throws IOException {
+    public ResponseEntity<String> setOpens(@PathVariable("prospectId") String prospectId, @PathVariable("campaignId") String campaignId, @PathVariable("stepNumber") Integer stepNumber, @PathVariable("mailNumber") Integer mailNumber) throws IOException {
         trackingService.trackOpens(prospectId, campaignId, stepNumber, mailNumber);
+        return new ResponseEntity<>("Success", HttpStatus.OK);
     }
 
     @GetMapping("/clicks/{prospectId}/{campaignId}/{stepNumber}/{mailNumber}")
