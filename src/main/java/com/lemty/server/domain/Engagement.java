@@ -26,12 +26,14 @@ public class Engagement {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "prospect_metadata_id")
     private ProspectMetadata prospectMetadata;
+/*
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "emails_id")
     private Emails emails;
 
+*/
     public String getId() {
         return id;
     }

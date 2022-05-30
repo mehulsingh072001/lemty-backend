@@ -17,9 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "emails", schema = "public")
 public class Emails {
+/*
     @Id
     @Column(name = "id", length = 8, unique = true, nullable = false)
     private String id = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
@@ -120,4 +119,5 @@ public class Emails {
                 ", appUser=" + appUser +
                 '}';
     }
+*/
 }
