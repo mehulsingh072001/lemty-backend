@@ -153,15 +153,12 @@ public class MailJob extends QuartzJobBean{
         if(nextStepIndex != 0){
             Map<String, Object> nextStep = steps.get(nextStepIndex);
 
-            Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
+            Integer dayGap = Integer.parseInt((String) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap")));
             Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
             Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
 
             ZoneId zoneId = ZoneId.of(campaign.getTimezone());
-            ZonedDateTime d = ZonedDateTime.now().withZoneSameInstant(zoneId);
-            String stringDateTime = String.format("%d-%02d-%02dT%02d:%02d:%02d", d.getYear(), d.getMonthValue(), (d.getDayOfMonth() + dayGap), (d.getHour() + hourGap), (d.getMinute() + minuteGap), d.getSecond());
-            LocalDateTime localDateTime = LocalDateTime.from(LocalDateTime.parse(stringDateTime).atZone(zoneId));
-            ZonedDateTime startDate2 = ZonedDateTime.of(localDateTime, zoneId);
+            ZonedDateTime startDate2 = ZonedDateTime.now().withZoneSameInstant(zoneId).plusDays(dayGap).plusHours(hourGap).plusMinutes(minuteGap);
 
             JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, userId);
             Trigger trigger = buildStepTrigger(jobDetail, campaignId, startDate2);
