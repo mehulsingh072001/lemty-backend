@@ -1,25 +1,24 @@
 package com.lemty.server.jobs;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
 import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.DeliveribilitySettings;
-import com.lemty.server.domain.EmailSignature;
+import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
-import com.lemty.server.domain.Unsubscribe;
 import com.lemty.server.helpers.GmailHelper;
 import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.jobPayload.MailRequest;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
 import com.lemty.server.service.DeliveribilitySettingsService;
 import com.lemty.server.service.EmailSignatureService;
+import com.lemty.server.service.MailJobService;
 import com.lemty.server.service.StepService;
 import com.lemty.server.service.UnsubscribeService;
 
@@ -35,27 +34,25 @@ public class MailJob extends QuartzJobBean{
     private final GmailHelper gmailHelper;
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final Scheduler scheduler;
-    private final DeliveribilitySettingsService deliveribilitySettingsService;
     private final StepService stepService;
     private final CampaignRepository campaignRepository;
     private final ProspectRepository prospectRepository;
-    private final PlaceholderHelper placeholderHelper;
-    private final EmailSignatureService emailSignatureService;
-    private final UnsubscribeService unsubscribeService;
+    private final EmailsRepository emailsRepository;
+    private final MailJobService mailJobService;
+    private final DeliveribilitySettingsService deliveribilitySettingsService;
     @Autowired
     private Environment env;
 
-    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, DeliveribilitySettingsService deliveribilitySettingsService, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService){
+    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, EmailsRepository emailsRepository, MailJobService mailJobService, DeliveribilitySettingsService deliveribilitySettingsService){
         this.gmailHelper = gmailHelper;
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.scheduler = scheduler;
-        this.deliveribilitySettingsService = deliveribilitySettingsService;
         this.stepService = stepService;
         this.campaignRepository = campaignRepository;
         this.prospectRepository = prospectRepository;
-        this.placeholderHelper = placeholderHelper;
-        this.emailSignatureService = emailSignatureService;
-        this.unsubscribeService = unsubscribeService;
+        this.emailsRepository = emailsRepository;
+        this.mailJobService = mailJobService;
+        this.deliveribilitySettingsService = deliveribilitySettingsService;
     }
 
     @Override
@@ -65,62 +62,26 @@ public class MailJob extends QuartzJobBean{
         String prospectId = jobDataMap.getString("prospectId");
         String campaignId = jobDataMap.getString("campaignId");
         Integer stepIndex = (Integer) jobDataMap.get("stepIndex");
-        String nextProspect = jobDataMap.getString("nextProspect");
         Integer prospectIndex = (Integer) jobDataMap.get("prospectIndex");
         String userId = jobDataMap.getString("userId");
         Integer nextStepIndex = (Integer) jobDataMap.get("nextStepIndex");
         Integer afterNextStepIndex = (Integer) jobDataMap.get("afterNextStepIndex");
+        String emailsId = jobDataMap.getString("emailsId");
+        String nextProspectId = jobDataMap.getString("nextProspectId");
 
-        sendMail(context, prospectId, campaignId, stepIndex, nextProspect, userId, prospectIndex, nextStepIndex, afterNextStepIndex);
+        sendMail(context, prospectId, campaignId, stepIndex, userId, nextStepIndex, afterNextStepIndex, emailsId, nextProspectId);
     }
-    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepIndex, String nextProspect, String userId, Integer prospectIndex, Integer nextStepIndex, Integer afterNextStepIndex) {
+    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepIndex, String userId, Integer nextStepIndex, Integer afterNextStepIndex, String emailsId, String nextProspectId) {
         //Get data from app
         Campaign campaign = campaignRepository.findById(campaignId).get();
         List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
         Prospect prospect = prospectRepository.findById(prospectId).get();
-        List<Map<String, Object>> mails = stepService.getMailsFromSteps(campaign.getId(), stepIndex);
         Map<String, Object> step = steps.get(stepIndex);
-        List<EmailSignature> signatures = emailSignatureService.getSignatures(userId);
-        Unsubscribe unsubscribe = unsubscribeService.getUnsubscribe(userId);
-
-        //Get deliveribilitySettings
-        DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
-        int minSeconds = deliveribilitySettings.getMinInterval();
-        int maxSeconds = deliveribilitySettings.getMaxInterval();
-        int seconds = deliveribilitySettings.getSeconds();
-
-        //Mail Data
-        String from = step.get("whichEmail").toString();
-        String to = prospect.getProspectEmail();
-
-        String subject = (String) mails.get(prospectIndex % mails.size()).get("subject").getClass().cast(mails.get(prospectIndex % mails.size()).get("subject"));
-        String body = (String) mails.get(prospectIndex % mails.size()).get("body").getClass().cast(mails.get(prospectIndex % mails.size()).get("body"));
-        subject = placeholderHelper.fieldsReplacer(subject, prospect);
-        body = placeholderHelper.fieldsReplacer(body, prospect);
-        body = placeholderHelper.bodyLinkReplacer(body, prospectId, campaignId, stepIndex, (prospectIndex % mails.size()));
-
-        if(signatures.size() > 0){
-            body = placeholderHelper.signatureReplacer(body, signatures.get(0));
-        }
-        if(unsubscribe != null){
-            body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
-        }
-
-        String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + prospectId + "/" + campaignId + "/" + stepIndex  + "/" + (prospectIndex % mails.size());
-        body = body + "<img src='" + openLink + "' alt='pixel'>";
+        Emails email = emailsRepository.findById(emailsId).get();
 
         Integer stepNumber = (Integer) step.get("stepNumber").getClass().cast(step.get("stepNumber"));
-        String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
-
-        Object days = step.get("days");
-        ArrayList list = (ArrayList) days.getClass().cast(days);
-        StringJoiner joiner = new StringJoiner(",");
-        for(int l = 0; l < list.size(); l++){
-           joiner.add(list.get(l).toString());
-        }
-        String daysString = joiner.toString();
-        MailRequest mailRequest = new MailRequest(from, subject, to, body);
+        MailRequest mailRequest = new MailRequest(email.getFromEmail(), email.getSubject(), email.getToEmail(), email.getBody());
         String threadId;
         if(stepNumber == 1){
             String newThreadId = gmailHelper.sendMessage(mailRequest);
@@ -135,67 +96,90 @@ public class MailJob extends QuartzJobBean{
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
         }
+        email.setStatus("SENT");
+        emailsRepository.save(email);
 
-        // if(nextProspect != null){
-        //     try {
-        //         JobKey jobKey = new JobKey(nextProspect + "-" + stepNumber + "-" + campaignId, stepIndex + "-" +campaignId);
-        //         logger.info(String.valueOf(jobKey));
-        //         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-
-        //         Trigger trigger = buildTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, Date.from(Instant.now()), interval);
-        //         scheduler.scheduleJob(trigger);
-        //     } catch (SchedulerException e) {
-        //         e.printStackTrace();
-        //     }
-        // }
         List<String> prospectIds = new ArrayList<>();
         prospectIds.add(prospectId);
+
         if(nextStepIndex != 0){
             Map<String, Object> nextStep = steps.get(nextStepIndex);
-
             Integer dayGap = Integer.parseInt((String) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap")));
             Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
             Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
-
             ZoneId zoneId = ZoneId.of(campaign.getTimezone());
             ZonedDateTime startDate2 = ZonedDateTime.now().withZoneSameInstant(zoneId).plusDays(dayGap).plusHours(hourGap).plusMinutes(minuteGap);
 
-            JobDetail jobDetail = buildStepJobDetail(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, userId);
-            Trigger trigger = buildStepTrigger(jobDetail, campaignId, startDate2);
+            mailJobService.runStep(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, stepNumber, userId, Date.from(startDate2.toInstant()));
+        }
+
+        Emails nextEmail = emailsRepository.findByCampaignIdAndProspectId(campaignId, nextProspectId);
+        if(nextEmail != null){
+            logger.info(String.valueOf(nextEmail));
+            //Trigger mail job
+            JobKey jobKey = new JobKey(nextEmail.getId() + "-" + campaignId, campaignId);
+            logger.info(String.valueOf(jobKey));
+
+            String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
+            Object days = step.get("days");
+            ArrayList list = (ArrayList) days.getClass().cast(days);
+            StringJoiner joiner = new StringJoiner(",");
+            for(int l = 0; l < list.size(); l++){
+               joiner.add(list.get(l).toString());
+            }
+            String daysString = joiner.toString();
+            DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
+            int minSeconds = deliveribilitySettings.getMinInterval();
+            int maxSeconds = deliveribilitySettings.getMaxInterval();
+            int seconds = deliveribilitySettings.getSeconds();
+            ZoneId zoneId = ZoneId.of(campaign.getTimezone());
+
+            //Interval between emails
+            Integer interval;
+            if(deliveribilitySettings.getEmailInterval().equals("random")){
+                Random r = new Random();
+                int result = r.nextInt(maxSeconds - minSeconds) + minSeconds;
+                interval = result / 60;
+            }
+            else{
+                interval = seconds / 60;
+            }
+
             try {
-                scheduler.scheduleJob(jobDetail, trigger);
+                JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+                Trigger trigger = buildMailTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, interval);
+                scheduler.scheduleJob(trigger);
+                if(trigger.getNextFireTime().after(trigger.getStartTime())){
+                    List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
+                    for(Emails email2 : emails){
+                        email2.setStatus("UPCOMING");
+                    }
+                    emailsRepository.saveAll(emails);
+                }
+                logger.info(String.valueOf(trigger.getNextFireTime()));
             } catch (SchedulerException e) {
                 e.printStackTrace();
             }
         }
+
         try {
             scheduler.deleteJob(context.getJobDetail().getKey());
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
+
     }
 
-    private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, String userId){
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("prospectIds", prospectIds);
-        jobDataMap.put("campaignId", campaignId);
-        jobDataMap.put("nextStepIndex", nextStepIndex);
-        jobDataMap.put("stepIndex", stepIndex);
-        jobDataMap.put("userId", userId);
-        return JobBuilder.newJob(StepJob.class)
-                .withIdentity(UUID.randomUUID().toString(), campaignId)
-                .withDescription("Run Step Job")
-                .storeDurably()
-                .usingJobData(jobDataMap)
-                .build();
-    }
-
-    private Trigger buildStepTrigger(JobDetail jobDetail, String campaignId, ZonedDateTime startDate){
+    private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, Integer interval){
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
                 .withIdentity(jobDetail.getKey().getName(), campaignId)
-                .withDescription("Step Scheduler")
-                .startAt(Date.from(startDate.toInstant()))
+                .withDescription("Mail Job")
+                .withSchedule(CronScheduleBuilder
+                        .cronSchedule( "0  1/" + interval + " " + window + "  ? * " + days)
+                        .inTimeZone(TimeZone.getTimeZone(timezone))
+                        .withMisfireHandlingInstructionFireAndProceed()
+                )
                 .build();
     }
 }

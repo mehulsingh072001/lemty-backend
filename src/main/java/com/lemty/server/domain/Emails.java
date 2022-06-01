@@ -8,26 +8,27 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
 public class Emails {
-/*
     @Id
     @Column(name = "id", length = 8, unique = true, nullable = false)
     private String id = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-    private String from;
-    private String to;
+    private String fromEmail;
+    private String toEmail;
+    private String subject;
     private String body;
     private Integer step;
     private String threadId;
-    private LocalDateTime dateTime;
+    private ZonedDateTime startTime;
+    private String status = "TODAY";
 
     @JsonIgnore
     @ManyToOne(targetEntity = Campaign.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -38,6 +39,11 @@ public class Emails {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "app_user_id")
     private AppUser appUser;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prospect_id")
+    private Prospect prospect;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Engagement> engagements = new ArrayList<>();
@@ -50,20 +56,28 @@ public class Emails {
         this.id = id;
     }
 
-    public String getFrom() {
-        return from;
+    public String getFromEmail() {
+        return fromEmail;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public void setFromEmail(String fromEmail) {
+        this.fromEmail = fromEmail;
     }
 
-    public String getTo() {
-        return to;
+    public String getToEmail() {
+        return toEmail;
     }
 
-    public void setTo(String to) {
-        this.to = to;
+    public void setToEmail(String toEmail) {
+        this.toEmail = toEmail;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     public String getBody() {
@@ -82,12 +96,28 @@ public class Emails {
         this.step = step;
     }
 
-    public LocalDateTime getDateTime() {
-        return dateTime;
+    public String getThreadId() {
+        return threadId;
     }
 
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
+    public void setThreadId(String threadId) {
+        this.threadId = threadId;
+    }
+
+    public ZonedDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(ZonedDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public List<Engagement> getEngagements() {
+        return engagements;
+    }
+
+    public void setEngagements(List<Engagement> engagements) {
+        this.engagements = engagements;
     }
 
     public Campaign getCampaign() {
@@ -106,18 +136,32 @@ public class Emails {
         this.appUser = appUser;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Prospect getProspect() {
+        return prospect;
+    }
+
+    public void setProspect(Prospect prospect) {
+        this.prospect = prospect;
+    }
+
     @Override
     public String toString() {
         return "Emails{" +
                 "id='" + id + '\'' +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
+                ", from='" + fromEmail + '\'' +
+                ", to='" + toEmail + '\'' +
                 ", body='" + body + '\'' +
                 ", step=" + step +
-                ", dateTime=" + dateTime +
                 ", campaign=" + campaign +
                 ", appUser=" + appUser +
                 '}';
     }
-*/
 }

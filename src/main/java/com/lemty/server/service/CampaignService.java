@@ -5,10 +5,12 @@ import java.util.*;
 import com.lemty.server.LemtyApplication;
 import com.lemty.server.domain.AppUser;
 import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Engagement;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.EngagementRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
@@ -40,9 +42,11 @@ public class CampaignService {
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final ProspectRepository prospectRepository;
     private final EngagementRepository engagementRepository;
+    private final EmailsRepository emailsRepository;
 
     @Autowired
-    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository){
+    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository){
+
         this.scheduler = scheduler;
         this.campaignRepository = campaignRepository;
         this.prospectService = prospectService;
@@ -51,6 +55,7 @@ public class CampaignService {
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.prospectRepository = prospectRepository;
         this.engagementRepository = engagementRepository;
+        this.emailsRepository = emailsRepository;
     }
 
     //List all campaigns
@@ -119,6 +124,10 @@ public class CampaignService {
             );
         }
         prospectService.removeProspectFromCampaign(campaignId);
+        List<Emails> emails = emailsRepository.findByCampaignId(campaignId);
+        for(int i=0; i < emails.size(); i++){
+            emails.get(i).setCampaign(null);
+        }
 
         List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
         try {

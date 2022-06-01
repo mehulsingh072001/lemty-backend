@@ -1,6 +1,8 @@
 package com.lemty.server.controller;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 import com.lemty.server.LemtyApplication;
@@ -53,12 +55,19 @@ public class JobController {
         return new ResponseEntity<>(keys, HttpStatus.ACCEPTED);
     }
 
-    // @GetMapping(path = "fireTime")
-    // public ResponseEntity<?> getAllJo(@RequestParam("time") long triggerKeyL) {
-    //     String body =  "<a href='www.google.com'></a>";
-    //     body = placeholderHelper.bodyLinkReplacer(body);
-    //     return new ResponseEntity<>(body, HttpStatus.OK);
-    // }
+    @GetMapping(path = "fireTime")
+    public String getAllJo(@RequestParam("time") long time) {
+/*
+        long bigintTime = Long.parseLong(String.valueOf(time));
+        Instant instant = Instant.ofEpochSecond(bigintTime);
+        return instant.toString();
+*/
+        Date date = new Date(time);
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE,MMMM d,yyyy h:mm,a", Locale.ENGLISH);
+        //sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String formattedDate = sdf.format(date);
+        return formattedDate;
+    }
 
 
 

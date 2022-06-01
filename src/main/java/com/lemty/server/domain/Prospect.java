@@ -79,6 +79,9 @@ public class Prospect{
     @OneToMany(cascade = CascadeType.REMOVE)
     private List<ProspectMetadata> prospectMetadatas = new ArrayList<>();
 
+    @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Emails> emails = new ArrayList<>();
+
     public Prospect(String firstName,
                     String lastName,
                     String prospectEmail,

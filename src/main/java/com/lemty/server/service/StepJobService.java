@@ -1,9 +1,9 @@
 package com.lemty.server.service;
 
 import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Mail;
 import com.lemty.server.helpers.StartDateHelper;
 import com.lemty.server.jobPayload.CampaignPayload;
-import com.lemty.server.jobPayload.StepPayload;
 import com.lemty.server.jobs.StepJob;
 import com.lemty.server.repo.CampaignRepository;
 
@@ -24,14 +24,16 @@ public class StepJobService {
     private final CampaignRepository campaignRepository;
     private final DeliveribilitySettingsService deliveribilitySettingsService;
     private final StartDateHelper startDateHelper;
+    private final MailJobService mailJobService;
 
-    public StepJobService(Scheduler scheduler, StepService stepService, ProspectService prospectService, CampaignRepository campaignRepository, DeliveribilitySettingsService deliveribilitySettingsService, StartDateHelper startDateHelper) {
+    public StepJobService(Scheduler scheduler, StepService stepService, ProspectService prospectService, CampaignRepository campaignRepository, DeliveribilitySettingsService deliveribilitySettingsService, StartDateHelper startDateHelper, MailJobService mailJobService) {
         this.scheduler = scheduler;
         this.stepService = stepService;
         this.prospectService = prospectService;
         this.campaignRepository = campaignRepository;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
         this.startDateHelper = startDateHelper;
+        this.mailJobService = mailJobService;
     }
 
     public void createCampaignJob(CampaignPayload payload, String userId) {
@@ -53,15 +55,7 @@ public class StepJobService {
         else{
             nextStepIndex = stepIndex + 1;
         }
-        try{
-            JobDetail jobDetail = buildStepJobDetail(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId);
-            Trigger trigger = buildTrigger(jobDetail, campaignId);
-            scheduler.scheduleJob(jobDetail, trigger);
-        }
-        catch(SchedulerException e){
-            e.printStackTrace();
-        }
-
+        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId, Date.from(Instant.now()));
     }
 
     private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId){
