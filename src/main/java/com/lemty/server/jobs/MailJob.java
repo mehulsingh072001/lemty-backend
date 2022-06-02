@@ -96,6 +96,7 @@ public class MailJob extends QuartzJobBean{
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
         }
+        prospect.setStatus("CONTACTED");
         email.setStatus("SENT");
         emailsRepository.save(email);
 
@@ -110,7 +111,7 @@ public class MailJob extends QuartzJobBean{
             ZoneId zoneId = ZoneId.of(campaign.getTimezone());
             ZonedDateTime startDate2 = ZonedDateTime.now().withZoneSameInstant(zoneId).plusDays(dayGap).plusHours(hourGap).plusMinutes(minuteGap);
 
-            mailJobService.runStep(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, stepNumber, userId, Date.from(startDate2.toInstant()));
+            mailJobService.runStep(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, stepNumber, userId, startDate2);
         }
 
         Emails nextEmail = emailsRepository.findByCampaignIdAndProspectId(campaignId, nextProspectId);

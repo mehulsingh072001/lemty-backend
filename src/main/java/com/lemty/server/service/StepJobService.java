@@ -55,7 +55,8 @@ public class StepJobService {
         else{
             nextStepIndex = stepIndex + 1;
         }
-        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId, Date.from(Instant.now()));
+        ZonedDateTime startDate = ZonedDateTime.now().withZoneSameLocal(ZoneId.of(campaign.getTimezone()));
+        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId, startDate);
     }
 
     private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId){

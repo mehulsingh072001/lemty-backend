@@ -49,7 +49,7 @@ public class MailJobService {
         this.emailsRepository = emailsRepository;
         this.userRepo = userRepo;
     }
-    public void runStep(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId, Date startDate) {
+    public void runStep(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId, ZonedDateTime startDate) {
         //Fetching all data needed
         Campaign campaign = campaignRepository.findById(campaignId).get();
         List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
@@ -87,9 +87,9 @@ public class MailJobService {
             }
         }
 
-        ZonedDateTime currentZonedDateTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of(campaign.getTimezone()));
         List<Emails> initiEmails = new ArrayList<>();
 
+        ZonedDateTime currentZonedDateTime = ZonedDateTime.now();
         for(int i=0; i < prospectIds.size(); i++){
             //Mail Data
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
@@ -117,7 +117,7 @@ public class MailJobService {
             email.setToEmail(to);
             email.setSubject(subject);
             email.setBody(body);
-            email.setStartTime(currentZonedDateTime);
+            email.setStartTime(startDate);
             email.setAppUser(user);
             email.setCampaign(campaign);
             email.setStep(stepIndex);
@@ -145,13 +145,14 @@ public class MailJobService {
 
         //Trigger mail job
         JobKey jobKey = new JobKey(initiEmails.get(0).getId() + "-" + campaignId, campaignId);
-        logger.info(String.valueOf(jobKey));
+        logger.info(String.valueOf(Date.from(startDate.toInstant().atZone(ZoneId.of(campaign.getTimezone())).toInstant())));
+        logger.info(String.valueOf(Date.from(startDate.toInstant())));
         try {
             JobDetail jobDetail = scheduler.getJobDetail(jobKey);
             logger.info(String.valueOf(jobDetail));
             Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window, startDate);
             scheduler.scheduleJob(trigger);
-            if(trigger.getNextFireTime().after(trigger.getStartTime())){
+            if(Date.from(currentZonedDateTime.toInstant()).after(trigger.getStartTime())){
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                 for(Emails email2 : emails){
                     email2.setStatus("UPCOMING");
@@ -182,11 +183,12 @@ public class MailJobService {
                 .build();
     }
 
-    private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, Date startDate){
+    private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, ZonedDateTime startDate){
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
                 .withIdentity(jobDetail.getKey().getName(), campaignId)
                 .withDescription("Mail Job")
+                .startAt(Date.from(startDate.toInstant().atZone(ZoneId.of(timezone)).toInstant()))
                 .withSchedule(CronScheduleBuilder
                         .cronSchedule("5 * " + window + "  ? * " + days)
                         .inTimeZone(TimeZone.getTimeZone(timezone))
