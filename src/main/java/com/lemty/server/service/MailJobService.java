@@ -118,7 +118,6 @@ public class MailJobService {
             email.setToEmail(to);
             email.setSubject(subject);
             email.setBody(body);
-            email.setStartTime(startDate);
             email.setAppUser(user);
             email.setCampaign(campaign);
             email.setStep(stepIndex);
@@ -153,9 +152,11 @@ public class MailJobService {
             logger.info(String.valueOf(jobDetail));
             Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window, startDate);
             scheduler.scheduleJob(trigger);
-            if(DateUtils.isSameDay(Date.from(currentZonedDateTime.toInstant()), trigger.getStartTime())){
+            Date emailStartDateTime = trigger.getFireTimeAfter(Date.from(startDate.toInstant()));
+            if(DateUtils.isSameDay(Date.from(currentZonedDateTime.toInstant()), emailStartDateTime)){
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                 for(Emails email2 : emails){
+                    email2.setStartTime(emailStartDateTime);
                     email2.setStatus("TODAY");
                 }
                 emailsRepository.saveAll(emails);

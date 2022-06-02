@@ -11,8 +11,8 @@ import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ public class Emails {
     private String body;
     private Integer step;
     private String threadId;
-    private ZonedDateTime startTime;
+    private Date startTime;
     private String status = "TODAY";
 
     @JsonIgnore
@@ -104,11 +104,11 @@ public class Emails {
         this.threadId = threadId;
     }
 
-    public ZonedDateTime getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(ZonedDateTime startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
