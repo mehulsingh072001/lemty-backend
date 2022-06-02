@@ -6,6 +6,7 @@ import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.jobs.MailJob;
 import com.lemty.server.jobs.StepJob;
 import com.lemty.server.repo.*;
+import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +153,14 @@ public class MailJobService {
             logger.info(String.valueOf(jobDetail));
             Trigger trigger = buildMailTrigger(jobDetail, str, campaignId, campaign.getTimezone(), window, startDate);
             scheduler.scheduleJob(trigger);
-            if(Date.from(currentZonedDateTime.toInstant()).after(trigger.getStartTime())){
+            if(DateUtils.isSameDay(Date.from(currentZonedDateTime.toInstant()), trigger.getStartTime())){
+                List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
+                for(Emails email2 : emails){
+                    email2.setStatus("TODAY");
+                }
+                emailsRepository.saveAll(emails);
+            }
+            else{
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                 for(Emails email2 : emails){
                     email2.setStatus("UPCOMING");
