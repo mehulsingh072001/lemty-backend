@@ -28,6 +28,7 @@ public class Emails {
     private Integer step;
     private String threadId;
     private Date startTime;
+    private Date sentDateTime;
     private String status = "TODAY";
 
     @JsonIgnore
@@ -150,6 +151,14 @@ public class Emails {
 
     public void setProspect(Prospect prospect) {
         this.prospect = prospect;
+    }
+
+    public Date getSentDateTime() {
+        return sentDateTime;
+    }
+
+    public void setSentDateTime(Date sentDateTime) {
+        this.sentDateTime = sentDateTime;
     }
 
     @Override
