@@ -1,5 +1,6 @@
 package com.lemty.server.jobs;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -98,6 +99,8 @@ public class MailJob extends QuartzJobBean{
         }
         prospect.setStatus("CONTACTED");
         email.setStatus("SENT");
+        ZonedDateTime sendTime = ZonedDateTime.now().withZoneSameLocal(ZoneId.of("Asia/Kolkata"));
+        email.setSentDateTime(Date.from(sendTime.toInstant()));
         emailsRepository.save(email);
 
         List<String> prospectIds = new ArrayList<>();
