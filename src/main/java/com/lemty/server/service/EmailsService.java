@@ -63,7 +63,6 @@ public class EmailsService {
         LocalDate localendDate = endDateTime.toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
         List<LocalDate> localDates = localStartDate.datesUntil(localendDate).collect(Collectors.toList());
 
-
         for(LocalDate localDate : localDates){
             Map<String, Object> data = new HashMap<>();
             Integer count = 0;
@@ -93,6 +92,18 @@ public class EmailsService {
         data.put("prospects", count);
         response.add(data);
 
+        return response;
+    }
+
+    public Map<String, Integer> getUserCounts(String userId){
+        Map<String, Integer> response = new HashMap<>();
+        Integer todayCount = emailsRepository.findByAppUserIdAndStatus(userId, "TODAY").size();
+        Integer upcomingCount = emailsRepository.findByAppUserIdAndStatus(userId, "UPCOMING").size();
+        Integer sentCount = emailsRepository.findByAppUserIdAndStatus(userId, "SENT").size();
+
+        response.put("today", todayCount);
+        response.put("upcoming", upcomingCount);
+        response.put("sent", sentCount);
         return response;
     }
 }

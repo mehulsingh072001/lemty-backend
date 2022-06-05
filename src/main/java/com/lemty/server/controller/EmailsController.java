@@ -37,8 +37,14 @@ public class EmailsController {
     }
 
     @GetMapping(path = "/campaign/count")
-    public ResponseEntity<Map<String, Integer>> getByStatus(@RequestParam("campaignId") String campaignId){
+    public ResponseEntity<Map<String, Integer>> getCampaignCounts(@RequestParam("campaignId") String campaignId){
         Map<String, Integer> response = emailsService.getCampaignCounts(campaignId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/user/count")
+    public ResponseEntity<Map<String, Integer>> getUserCounts(@RequestParam("userId") String userId){
+        Map<String, Integer> response = emailsService.getUserCounts(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
