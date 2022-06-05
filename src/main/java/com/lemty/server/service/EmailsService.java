@@ -4,17 +4,25 @@ import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.Emails;
 import com.lemty.server.repo.CampaignRepository;
 import com.lemty.server.repo.EmailsRepository;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EmailsService {
+    Logger logger = LoggerFactory.getLogger(EmailsService.class);
+
     private final EmailsRepository emailsRepository;
     private final CampaignRepository campaignRepository;
 
@@ -42,5 +50,49 @@ public class EmailsService {
 
     public Emails getEmailByProspectIdAndCampaignId(String campaignId, String prospectId){
         return emailsRepository.findByCampaignIdAndProspectId(campaignId, prospectId);
+    }
+
+    public List<Map<String, Object>> getSentEmailsCount(String userId, String startDate, String endDate){
+        List<Map<String, Object>> response = new ArrayList<>();
+
+        Date startDateTime = Date.from(ZonedDateTime.parse(startDate).toInstant());
+        Date endDateTime = Date.from(ZonedDateTime.parse(endDate).toInstant());
+        List<Emails> emails = emailsRepository.findByAppUserIdAndSentDateTimeBetween(userId, startDateTime, endDateTime);
+
+        LocalDate localStartDate = startDateTime.toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+        LocalDate localendDate = endDateTime.toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+        List<LocalDate> localDates = localStartDate.datesUntil(localendDate).collect(Collectors.toList());
+
+
+        for(LocalDate localDate : localDates){
+            Map<String, Object> data = new HashMap<>();
+            Integer count = 0;
+            for(Emails email : emails){
+                LocalDate sentDate = email.getSentDateTime().toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+                if(sentDate.isEqual(localDate)){
+                    count++;
+                }
+            }
+            data.put("date", localDate);
+            data.put("prospects", count);
+            response.add(data);
+        }
+
+        //Add last date data because above method does not get last date
+        Map<String, Object> data = new HashMap<>();
+        Integer count = 0;
+        for(Emails email : emails){
+            LocalDate sentDate = email.getSentDateTime().toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+            logger.info(String.valueOf(sentDate));
+            if(sentDate.isEqual(localendDate)){
+                count++;
+                logger.info("Yes");
+            }
+        }
+        data.put("date", localendDate);
+        data.put("prospects", count);
+        response.add(data);
+
+        return response;
     }
 }

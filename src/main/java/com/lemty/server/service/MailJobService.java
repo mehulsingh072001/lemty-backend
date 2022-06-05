@@ -124,6 +124,10 @@ public class MailJobService {
             email.setProspect(prospect);
             initiEmails.add(email);
 
+            // List<Emails> prospectEmails = prospect.getEmails();
+            // prospectEmails.add(email);
+            // prospect.setEmails(prospectEmails);
+
             String nextProspectId = "";
             if((i + 1) == prospectIds.size()){
                 nextProspectId = "";

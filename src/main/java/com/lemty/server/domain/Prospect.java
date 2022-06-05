@@ -315,6 +315,14 @@ public class Prospect{
         this.status = status;
     }
 
+    public List<Emails> getEmails() {
+        return emails;
+    }
+
+    public void setEmails(List<Emails> emails) {
+        this.emails = emails;
+    }
+
     @Override
     public String toString() {
         return "Prospect{" +

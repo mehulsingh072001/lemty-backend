@@ -11,7 +11,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EmailsRepository extends JpaRepository<Emails, String>{
     List<Emails> findByCampaignId(String campaignId);
+    List<Emails> findByProspectId(String prospectId);
     List<Emails> findByCampaignIdAndStatus(String campaignId, String status);
     Emails findByCampaignIdAndProspectId(String campaignId, String prospectId);
-    List<Emails> findByAppUserIdAndSentDateTime(String appUserId, Date sentDateTime);
+    List<Emails> findByAppUserIdAndSentDateTimeBetween(String appUserId, Date startTime, Date endTime);
+    void deleteAllByProspectId(String prospectId);
 }

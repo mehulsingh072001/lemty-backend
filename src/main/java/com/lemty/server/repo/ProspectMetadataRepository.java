@@ -14,5 +14,6 @@ public interface ProspectMetadataRepository extends JpaRepository<ProspectMetada
     Page<ProspectMetadata> findByCampaignId(String campaignId, Pageable page);
     ProspectMetadata findByProspectIdAndCampaignId(String prospectId, String campaignId);
     Page<ProspectMetadata> findByCampaignIdAndStatusIs(String campaignId, String status, Pageable pageable);
+    List<ProspectMetadata> findByProspectId(String prospectId);
     void deleteAllByCampaignId(String campaignId);
 }

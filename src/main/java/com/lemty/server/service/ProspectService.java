@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import javax.transaction.Transactional;
+
 @Service
 public class ProspectService {
     Logger logger = LoggerFactory.getLogger(ProspectService.class);
@@ -27,16 +29,18 @@ public class ProspectService {
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final StepService stepService;
     private final UserRepo userRepo;
+    private final EmailsRepository emailsRepository;
     private Scheduler scheduler;
 
     @Autowired
-    public ProspectService(ProspectRepository prospectRepository, ProspectListRepository prospectListRepository, UserRepo userRepo, CampaignRepository campaignRepository, ProspectMetadataRepository prospectMetadataRepository, StepService stepService){
+    public ProspectService(ProspectRepository prospectRepository, ProspectListRepository prospectListRepository, UserRepo userRepo, CampaignRepository campaignRepository, ProspectMetadataRepository prospectMetadataRepository, StepService stepService, EmailsRepository emailsRepository){
         this.prospectRepository = prospectRepository;
         this.prospectListRepository = prospectListRepository;
         this.campaignRepository = campaignRepository;
         this.userRepo = userRepo;
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.stepService = stepService;
+        this.emailsRepository = emailsRepository;
     }
 
     //List all prospects
@@ -349,6 +353,7 @@ public class ProspectService {
     }
 
     //Delete Multiple Prospect
+    @Transactional
     public void deleteMultipleProspects(List<String> prospectId){
         for(int i=0; i < prospectId.size(); i++){
             Prospect prospect = prospectRepository.findById(prospectId.get(i)).get();
@@ -358,20 +363,12 @@ public class ProspectService {
                     Campaign campaign = campaigns.get(j);
                     campaign.setProspectCount(totalNumberofProspectsCampaign(campaign.getId()));
                     List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaign.getId()));
-
-                    for(int l=0; l < steps.size(); l++){
-                        Integer stepNumber = (Integer) steps.get(l).get("stepNumber").getClass().cast(steps.get(l).get("stepNumber"));
-                        JobKey jobKey = new JobKey(prospect.getProspectEmail() + "-" + stepNumber + "-" + campaign.getId(), campaign.getId());
-                        try {
-                            scheduler.deleteJob(jobKey);
-                        } catch (SchedulerException e) {
-                            e.printStackTrace();
-                        }
-                    }
                     campaignRepository.save(campaigns.get(j));
                 }
                 prospect.setCampaigns(null);
             }
+            List<Emails> prospectEmails = emailsRepository.findByProspectId(prospect.getId());
+            emailsRepository.deleteAllInBatch(prospectEmails);
             prospectRepository.save(prospect);
         }
         prospectRepository.deleteAllById(prospectId);
