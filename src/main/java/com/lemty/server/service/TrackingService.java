@@ -3,9 +3,11 @@ package com.lemty.server.service;
 import java.util.*;
 
 import com.lemty.server.domain.Campaign;
+import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Engagement;
 import com.lemty.server.domain.ProspectMetadata;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.EngagementRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 
@@ -20,16 +22,24 @@ public class TrackingService {
     private final ProspectMetadataRepository prospectMetadataRepository;
     private final StepService stepService;
     private final EngagementRepository engagementRepository;
+    private final EmailsRepository emailsRepository;
 
-    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository, EngagementRepository engagementRepository) {
+    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository) {
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.stepService = stepService;
         this.campaignRepository = campaignRepository;
         this.engagementRepository = engagementRepository;
+        this.emailsRepository = emailsRepository;
     }
 
 
-    public void trackOpens(String prospectId, String campaignId, Integer stepNumber, Integer mailNumber){
+    public void trackOpens(String emailId){
+        Emails email = emailsRepository.findById(emailId).get();
+        String prospectId = email.getProspect().getId();
+        String campaignId = email.getCampaign().getId();
+        Integer stepNumber = email.getStep();
+        Integer mailNumber = email.getMail();
+
         //Set opens in prospect metadata
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
 
@@ -39,6 +49,8 @@ public class TrackingService {
             engagement.setOpens(engagement.getOpens() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
+            email.setEngagement(engagement);
+            emailsRepository.save(email);
             engagements.add(engagement);
             engagementRepository.save(engagement);
         }
@@ -55,6 +67,8 @@ public class TrackingService {
                 engagement.setOpens(engagement.getOpens() + 1);
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
+                email.setEngagement(engagement);
+                emailsRepository.save(email);
                 engagements.add(engagement);
                 engagementRepository.save(engagement);
             }
@@ -105,7 +119,13 @@ public class TrackingService {
     }
 
 
-    public void trackClicks(String prospectId, String campaignId, Integer stepNumber, Integer mailNumber){
+    public void trackClicks(String emailId){
+        Emails email = emailsRepository.findById(emailId).get();
+        String prospectId = email.getProspect().getId();
+        String campaignId = email.getCampaign().getId();
+        Integer stepNumber = email.getStep();
+        Integer mailNumber = email.getMail();
+
         //Set opens in prospect metadata
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
         List<Engagement> engagements = engagementRepository.findByProspectMetadataId(metadata.getId());
@@ -114,6 +134,8 @@ public class TrackingService {
             engagement.setClicks(engagement.getClicks() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
+            email.setEngagement(engagement);
+            emailsRepository.save(email);
             engagements.add(engagement);
             engagementRepository.save(engagement);
         }
@@ -130,6 +152,8 @@ public class TrackingService {
                 engagement.setClicks(engagement.getClicks() + 1);
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
+                email.setEngagement(engagement);
+                emailsRepository.save(email);
                 engagements.add(engagement);
                 engagementRepository.save(engagement);
             }

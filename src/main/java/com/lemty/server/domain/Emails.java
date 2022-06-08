@@ -26,6 +26,7 @@ public class Emails {
     private String subject;
     private String body;
     private Integer step;
+    private Integer mail;
     private String threadId;
     private Date startTime;
     private Date sentDateTime;
@@ -46,8 +47,8 @@ public class Emails {
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private List<Engagement> engagements = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Engagement engagement;
 
     public String getId() {
         return id;
@@ -89,6 +90,15 @@ public class Emails {
         this.body = body;
     }
 
+    public Integer getMail() {
+        return mail;
+    }
+
+    public void setMail(Integer mail) {
+        this.mail = mail;
+    }
+
+
     public Integer getStep() {
         return step;
     }
@@ -113,12 +123,12 @@ public class Emails {
         this.startTime = startTime;
     }
 
-    public List<Engagement> getEngagements() {
-        return engagements;
+    public Engagement getEngagement() {
+        return engagement;
     }
 
-    public void setEngagements(List<Engagement> engagements) {
-        this.engagements = engagements;
+    public void setEngagement(Engagement engagement) {
+        this.engagement = engagement;
     }
 
     public Campaign getCampaign() {
