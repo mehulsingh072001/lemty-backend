@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,9 +32,9 @@ public class Engagement {
     private ProspectMetadata prospectMetadata;
 
     @JsonIgnore
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "emails_id")
-    private List<Emails> emails;
+    private Emails emails;
 
     public String getId() {
         return id;
@@ -80,6 +82,14 @@ public class Engagement {
 
     public void setProspectMetadata(ProspectMetadata prospectMetadata) {
         this.prospectMetadata = prospectMetadata;
+    }
+
+    public Emails getEmails() {
+        return emails;
+    }
+
+    public void setEmails(Emails emails) {
+        this.emails = emails;
     }
 
     @Override

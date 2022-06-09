@@ -20,14 +20,14 @@ public class TrackingController {
         this.trackingService = trackingService;
     }
 
-    @GetMapping("/opens/{prospectId}/{campaignId}/{stepNumber}/{mailNumber}")
-    public ResponseEntity<String> setOpens(@PathVariable("prospectId") String prospectId, @PathVariable("campaignId") String campaignId, @PathVariable("stepNumber") Integer stepNumber, @PathVariable("mailNumber") Integer mailNumber) throws IOException {
-        trackingService.trackOpens(prospectId, campaignId, stepNumber, mailNumber);
+    @GetMapping("/opens/{emailId}")
+    public ResponseEntity<String> setOpens(@PathVariable("emailId") String emailId) throws IOException {
+        trackingService.trackOpens(emailId);
         return new ResponseEntity<>("Success", HttpStatus.OK);
     }
 
-    @GetMapping("/clicks/{prospectId}/{campaignId}/{stepNumber}/{mailNumber}")
-    public void setClicks(@PathVariable("prospectId") String prospectId, @PathVariable("campaignId") String campaignId, @PathVariable("stepNumber") Integer stepNumber, @PathVariable("mailNumber") Integer mailNumber) throws IOException {
-        trackingService.trackClicks(prospectId, campaignId, stepNumber, mailNumber);
+    @GetMapping("/clicks/{emailId}")
+    public void setClicks(@PathVariable("emailId") String emailId) throws IOException {
+        trackingService.trackClicks(emailId);
     }
 }

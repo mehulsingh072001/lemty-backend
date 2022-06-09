@@ -49,10 +49,10 @@ public class TrackingService {
             engagement.setOpens(engagement.getOpens() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
-            email.setEngagement(engagement);
-            emailsRepository.save(email);
             engagements.add(engagement);
             engagementRepository.save(engagement);
+            email.setEngagement(engagement);
+            emailsRepository.save(email);
         }
         else{
             Engagement existingEngagement = engagementRepository.findByProspectMetadataIdAndStepNumber(metadata.getId(), stepNumber + 1);
@@ -67,10 +67,10 @@ public class TrackingService {
                 engagement.setOpens(engagement.getOpens() + 1);
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
-                email.setEngagement(engagement);
-                emailsRepository.save(email);
                 engagements.add(engagement);
                 engagementRepository.save(engagement);
+                email.setEngagement(engagement);
+                emailsRepository.save(email);
             }
 
         }
@@ -134,10 +134,10 @@ public class TrackingService {
             engagement.setClicks(engagement.getClicks() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
-            email.setEngagement(engagement);
-            emailsRepository.save(email);
             engagements.add(engagement);
             engagementRepository.save(engagement);
+            email.setEngagement(engagement);
+            emailsRepository.save(email);
         }
         else{
             Engagement existingEngagement = engagementRepository.findByProspectMetadataIdAndStepNumber(metadata.getId(), stepNumber + 1);
@@ -152,10 +152,10 @@ public class TrackingService {
                 engagement.setClicks(engagement.getClicks() + 1);
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
-                email.setEngagement(engagement);
-                emailsRepository.save(email);
                 engagements.add(engagement);
                 engagementRepository.save(engagement);
+                email.setEngagement(engagement);
+                emailsRepository.save(email);
             }
 
         }

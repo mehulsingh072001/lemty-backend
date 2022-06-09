@@ -122,6 +122,7 @@ public class MailJobService {
             email.setCampaign(campaign);
             email.setStep(stepIndex);
             email.setProspect(prospect);
+            email.setMail(i % mails.size());
             initiEmails.add(email);
 
             // List<Emails> prospectEmails = prospect.getEmails();
