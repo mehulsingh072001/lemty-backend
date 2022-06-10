@@ -54,7 +54,7 @@ public class Campaign{
     @JoinColumn(name = "app_user_id")
     private AppUser appUser;
 
-    @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY)
     private List<Emails> emails = new ArrayList<>();
 
     @OneToMany(targetEntity = Engagement.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)

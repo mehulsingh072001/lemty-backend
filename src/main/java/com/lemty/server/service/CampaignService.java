@@ -115,7 +115,6 @@ public class CampaignService {
         campaignRepository.save(existingCampaign);
     }
 
-    @Transactional
     public void deleteCampaign(String campaignId){
         boolean exists = campaignRepository.existsById(campaignId);
         if(!exists){
@@ -125,28 +124,38 @@ public class CampaignService {
         }
         List<Engagement> engagements = engagementRepository.findByCampaignId(campaignId);
 
-        for(Engagement engagement : engagements){
-            engagement.setProspectMetadata(null);
-            engagement.setCampaign(null);
-            engagementRepository.save(engagement);
+        if(engagements.size() != 0){
+            for(Engagement engagement : engagements){
+                engagement.setProspectMetadata(null);
+                engagement.setCampaign(null);
+                engagementRepository.save(engagement);
+            }
         }
 
         prospectService.removeProspectFromCampaign(campaignId);
         List<Emails> emails = emailsRepository.findByCampaignId(campaignId);
         for(int i=0; i < emails.size(); i++){
-            emails.get(i).setCampaign(null);
+            Emails emails2 = emails.get(i);
+            if(emails2.getStatus() == "SENT"){
+                emails2.setCampaign(null);
+            }
+            else{
+                emailsRepository.delete(emails2);
+            }
         }
 
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        logger.info("fdk");
         try {
             Set<JobKey> keys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(campaignId));
             List<JobKey> jobKeys = new ArrayList<JobKey>(keys);
+            logger.info(String.valueOf(jobKeys));
             scheduler.deleteJobs(jobKeys);
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
 
-        campaignRepository.deleteById(campaignId);
+        Campaign campaign = campaignRepository.findById(campaignId).get();
+        campaignRepository.delete(campaign);
     }
 
     public void pauseCampaign(String campaignId){

@@ -32,10 +32,11 @@ public class MailJobService {
     private final StepService stepService;
     private final EmailsRepository emailsRepository;
     private final UserRepo userRepo;
+    private final EngagementRepository engagementRepository;
     @Autowired
     private Environment env;
 
-    public MailJobService(ProspectService prospectService, GmailHelper gmailHelper, PlaceholderHelper placeholderHelper, DeliveribilitySettingsService deliveribilitySettingsService, CampaignRepository campaignRepository, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, ProspectRepository prospectRepository, EmailsRepository emailsRepository, UserRepo userRepo) {
+    public MailJobService(ProspectService prospectService, GmailHelper gmailHelper, PlaceholderHelper placeholderHelper, DeliveribilitySettingsService deliveribilitySettingsService, CampaignRepository campaignRepository, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, ProspectRepository prospectRepository, EmailsRepository emailsRepository, UserRepo userRepo, EngagementRepository engagementRepository) {
         this.gmailHelper = gmailHelper;
         this.placeholderHelper = placeholderHelper;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
@@ -48,6 +49,7 @@ public class MailJobService {
         this.prospectRepository = prospectRepository;
         this.emailsRepository = emailsRepository;
         this.userRepo = userRepo;
+        this.engagementRepository = engagementRepository;
     }
     public void runStep(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId, ZonedDateTime startDate) {
         //Fetching all data needed
@@ -118,15 +120,19 @@ public class MailJobService {
                 email.setProspect(prospect);
                 email.setMail(i % mails.size());
 
+                Engagement engagement = new Engagement();
+                engagement.setOpens(engagement.getOpens() + 1);
+                engagement.setStepNumber(stepNumber + 1);
+                engagement.setCampaign(campaignRepository.getById(campaignId));
+                engagementRepository.save(engagement);
+                email.setEngagement(engagement);
+                emailsRepository.save(email);
+
                 String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
                 body = body + "<img src='" + openLink + "' alt=''>";
 
                 email.setBody(body);
                 initiEmails.add(email);
-
-                // List<Emails> prospectEmails = prospect.getEmails();
-                // prospectEmails.add(email);
-                // prospect.setEmails(prospectEmails);
 
                 String nextProspectId = "";
                 if((i + 1) == prospectIds.size()){

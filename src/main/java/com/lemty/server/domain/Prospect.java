@@ -76,7 +76,7 @@ public class Prospect{
     )
     private List<Campaign> campaigns = new ArrayList<>();
 
-    @OneToMany(mappedBy = "id", orphanRemoval = true, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "id", cascade = CascadeType.REMOVE)
     private List<ProspectMetadata> prospectMetadatas = new ArrayList<>();
 
     @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)

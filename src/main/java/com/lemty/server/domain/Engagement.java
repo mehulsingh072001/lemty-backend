@@ -36,12 +36,6 @@ public class Engagement {
     @JoinColumn(name = "campaign_id")
     private Campaign campaign;
 
-
-    @JsonIgnore
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "emails_id")
-    private Emails emails;
-
     public String getId() {
         return id;
     }

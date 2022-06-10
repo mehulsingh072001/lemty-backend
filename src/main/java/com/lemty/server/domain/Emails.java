@@ -34,7 +34,7 @@ public class Emails {
     private String status = "TODAY";
 
     @JsonIgnore
-    @ManyToOne(targetEntity = Campaign.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(targetEntity = Campaign.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "campaign_id")
     private Campaign campaign;
 
@@ -48,7 +48,7 @@ public class Emails {
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
     private Engagement engagement;
 
     public String getId() {
