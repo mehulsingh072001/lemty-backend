@@ -17,17 +17,18 @@ public class ProspectMetadata implements Serializable {
     // private String prospectId;
     private Integer lastCompletedStep;
     private String threadId;
+    private String msgId;
     private Integer opens = 0;
     private Integer clicks = 0;
     private Integer replies = 0;
     private String status = "In Campaign";
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Engagement> engagements = new ArrayList<>();
 
     public String getId() {
@@ -116,6 +117,14 @@ public class ProspectMetadata implements Serializable {
 
     public void setEngagements(List<Engagement> engagements) {
         this.engagements = engagements;
+    }
+
+    public String getMsgId() {
+        return msgId;
+    }
+
+    public void setMsgId(String msgId) {
+        this.msgId = msgId;
     }
 
     @Override

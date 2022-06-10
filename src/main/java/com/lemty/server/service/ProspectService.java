@@ -343,6 +343,8 @@ public class ProspectService {
         }
         Prospect prospect = prospectRepository.findById(prospectId).get();
         prospect.setCampaigns(null);
+
+
         prospectRepository.save(prospect);
         List<Campaign> campaigns = prospect.getCampaigns();
         for(int j=0; j < campaigns.size(); j++){
@@ -367,6 +369,10 @@ public class ProspectService {
                 }
                 prospect.setCampaigns(null);
             }
+
+            List<ProspectMetadata> metadatas = prospectMetadataRepository.findByProspectId(prospectId.get(i));
+            prospectMetadataRepository.deleteAllInBatch(metadatas);
+
             List<Emails> prospectEmails = emailsRepository.findByProspectId(prospect.getId());
             emailsRepository.deleteAllInBatch(prospectEmails);
             prospectRepository.save(prospect);

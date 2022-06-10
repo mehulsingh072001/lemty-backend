@@ -49,6 +49,7 @@ public class TrackingService {
             engagement.setOpens(engagement.getOpens() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
+            engagement.setCampaign(campaignRepository.getById(campaignId));
             engagements.add(engagement);
             engagementRepository.save(engagement);
             email.setEngagement(engagement);
@@ -68,6 +69,7 @@ public class TrackingService {
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
                 engagements.add(engagement);
+                engagement.setCampaign(campaignRepository.getById(campaignId));
                 engagementRepository.save(engagement);
                 email.setEngagement(engagement);
                 emailsRepository.save(email);
@@ -134,6 +136,7 @@ public class TrackingService {
             engagement.setClicks(engagement.getClicks() + 1);
             engagement.setStepNumber(stepNumber + 1);
             engagement.setProspectMetadata(metadata);
+            engagement.setCampaign(campaignRepository.getById(campaignId));
             engagements.add(engagement);
             engagementRepository.save(engagement);
             email.setEngagement(engagement);
@@ -152,6 +155,7 @@ public class TrackingService {
                 engagement.setClicks(engagement.getClicks() + 1);
                 engagement.setStepNumber(stepNumber + 1);
                 engagement.setProspectMetadata(metadata);
+                engagement.setCampaign(campaignRepository.getById(campaignId));
                 engagements.add(engagement);
                 engagementRepository.save(engagement);
                 email.setEngagement(engagement);

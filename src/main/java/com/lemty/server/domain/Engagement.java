@@ -32,7 +32,13 @@ public class Engagement {
     private ProspectMetadata prospectMetadata;
 
     @JsonIgnore
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "campaign_id")
+    private Campaign campaign;
+
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "emails_id")
     private Emails emails;
 
@@ -90,6 +96,14 @@ public class Engagement {
 
     public void setEmails(Emails emails) {
         this.emails = emails;
+    }
+
+    public Campaign getCampaign() {
+        return campaign;
+    }
+
+    public void setCampaign(Campaign campaign) {
+        this.campaign = campaign;
     }
 
     @Override

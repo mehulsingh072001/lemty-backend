@@ -123,6 +123,14 @@ public class CampaignService {
                     "campaign with id " + campaignId + " does not exists"
             );
         }
+        List<Engagement> engagements = engagementRepository.findByCampaignId(campaignId);
+
+        for(Engagement engagement : engagements){
+            engagement.setProspectMetadata(null);
+            engagement.setCampaign(null);
+            engagementRepository.save(engagement);
+        }
+
         prospectService.removeProspectFromCampaign(campaignId);
         List<Emails> emails = emailsRepository.findByCampaignId(campaignId);
         for(int i=0; i < emails.size(); i++){

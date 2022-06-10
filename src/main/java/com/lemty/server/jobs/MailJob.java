@@ -85,15 +85,17 @@ public class MailJob extends QuartzJobBean{
         MailRequest mailRequest = new MailRequest(email.getFromEmail(), email.getSubject(), email.getToEmail(), email.getBody());
         String threadId;
         if(stepNumber == 1){
-            String newThreadId = gmailHelper.sendMessage(mailRequest);
+            Map<Object, Object> response = gmailHelper.sendMessage(mailRequest);
+            String newThreadId = response.get("threadId").toString();
             metadata.setThreadId(newThreadId);
+            metadata.setMsgId(response.get("messageId").toString());
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
             metadata.setStatus("CONTACTED");
         }
         else{
             threadId = metadata.getThreadId();
-            gmailHelper.sendMessageInThread(mailRequest, threadId);
+            gmailHelper.sendMessageInThread(mailRequest, threadId, metadata.getMsgId());
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
         }

@@ -4,7 +4,6 @@ import com.lemty.server.domain.*;
 import com.lemty.server.helpers.GmailHelper;
 import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.jobs.MailJob;
-import com.lemty.server.jobs.StepJob;
 import com.lemty.server.repo.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.*;
@@ -94,56 +93,57 @@ public class MailJobService {
         for(int i=0; i < prospectIds.size(); i++){
             //Mail Data
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
+            if(!prospect.getUnsubscribed()){
+                String from = step.get("whichEmail").toString();
+                String to = prospect.getProspectEmail();
+                String subject = (String) mails.get(i % mails.size()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
+                String body = (String) mails.get(i % mails.size()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
+                subject = placeholderHelper.fieldsReplacer(subject, prospect);
+                body = placeholderHelper.fieldsReplacer(body, prospect);
+                body = placeholderHelper.bodyLinkReplacer(body, prospect.getId(), campaignId, stepIndex, (i % mails.size()));
 
-            String from = step.get("whichEmail").toString();
-            String to = prospect.getProspectEmail();
-            String subject = (String) mails.get(i % mails.size()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
-            String body = (String) mails.get(i % mails.size()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
-            subject = placeholderHelper.fieldsReplacer(subject, prospect);
-            body = placeholderHelper.fieldsReplacer(body, prospect);
-            body = placeholderHelper.bodyLinkReplacer(body, prospect.getId(), campaignId, stepIndex, (i % mails.size()));
+                if(signatures.size() > 0){
+                    body = placeholderHelper.signatureReplacer(body, signatures.get(0));
+                }
+                if(unsubscribe != null){
+                    body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
+                }
 
-            if(signatures.size() > 0){
-                body = placeholderHelper.signatureReplacer(body, signatures.get(0));
-            }
-            if(unsubscribe != null){
-                body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
-            }
+                String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + prospect.getId() + "/" + campaignId + "/" + stepIndex  + "/" + (i % mails.size());
+                body = body + "<img src='" + openLink + "' alt='pixel'>";
 
-            String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + prospect.getId() + "/" + campaignId + "/" + stepIndex  + "/" + (i % mails.size());
-            body = body + "<img src='" + openLink + "' alt='pixel'>";
+                Emails email = new Emails();
+                email.setFromEmail(from);
+                email.setToEmail(to);
+                email.setSubject(subject);
+                email.setBody(body);
+                email.setAppUser(user);
+                email.setCampaign(campaign);
+                email.setStep(stepIndex);
+                email.setProspect(prospect);
+                email.setMail(i % mails.size());
+                initiEmails.add(email);
 
-            Emails email = new Emails();
-            email.setFromEmail(from);
-            email.setToEmail(to);
-            email.setSubject(subject);
-            email.setBody(body);
-            email.setAppUser(user);
-            email.setCampaign(campaign);
-            email.setStep(stepIndex);
-            email.setProspect(prospect);
-            email.setMail(i % mails.size());
-            initiEmails.add(email);
+                // List<Emails> prospectEmails = prospect.getEmails();
+                // prospectEmails.add(email);
+                // prospect.setEmails(prospectEmails);
 
-            // List<Emails> prospectEmails = prospect.getEmails();
-            // prospectEmails.add(email);
-            // prospect.setEmails(prospectEmails);
+                String nextProspectId = "";
+                if((i + 1) == prospectIds.size()){
+                    nextProspectId = "";
+                }
+                else{
+                    nextProspectId = prospectIds.get(i + 1);
+                }
+                logger.info(nextProspectId);
 
-            String nextProspectId = "";
-            if((i + 1) == prospectIds.size()){
-                nextProspectId = "";
-            }
-            else{
-                nextProspectId = prospectIds.get(i + 1);
-            }
-            logger.info(nextProspectId);
+                try {
+                    JobDetail jobDetail = buildMailJobDetail(campaignId, prospect.getId(), stepIndex, userId, nextStepIndex, afterNextStepIndex, email.getId(), nextProspectId);
+                    scheduler.addJob(jobDetail, true);
 
-            try {
-                JobDetail jobDetail = buildMailJobDetail(campaignId, prospect.getId(), stepIndex, userId, nextStepIndex, afterNextStepIndex, email.getId(), nextProspectId);
-                scheduler.addJob(jobDetail, true);
-
-            } catch (SchedulerException e) {
-                e.printStackTrace();
+                } catch (SchedulerException e) {
+                    e.printStackTrace();
+                }
             }
         }
         emailsRepository.saveAll(initiEmails);

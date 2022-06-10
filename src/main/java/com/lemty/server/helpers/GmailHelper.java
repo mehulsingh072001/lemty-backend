@@ -51,7 +51,7 @@ public class GmailHelper {
         return access_token;
     }
 
-     public String sendMessage(MailRequest mailRequest){
+     public Map<Object, Object> sendMessage(MailRequest mailRequest){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         GmailCreds creds = gmailCredsService.getCredsByEmail(mailRequest.getFrom());
@@ -76,11 +76,10 @@ public class GmailHelper {
 
         HttpEntity<String> entity = new HttpEntity<String>(request.toString(), headers);
 		Map<Object, Object> response = restTemplate.postForObject(baseUrl, entity, Map.class);
-        return String.valueOf(response.get("threadId"));
+        return response;
     }
 
-    // public String sendMessage(String from, String subject, String to, String body){
-     public Map<Object, Object> sendMessageInThread(MailRequest mailRequest, String threadId){
+     public Map<Object, Object> sendMessageInThread(MailRequest mailRequest, String threadId, String msgId){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         GmailCreds creds = gmailCredsService.getCredsByEmail(mailRequest.getFrom());
@@ -100,6 +99,7 @@ public class GmailHelper {
 
         String access_token = getAccessToken(mailRequest.getFrom());
         headers.setBearerAuth(access_token);
+        headers.add("Reference", msgId);
         String encodedString = Base64.getEncoder().encodeToString(email.getBytes());
 
         request.put("raw", encodedString);

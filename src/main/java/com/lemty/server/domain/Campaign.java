@@ -57,6 +57,9 @@ public class Campaign{
     @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Emails> emails = new ArrayList<>();
 
+    @OneToMany(targetEntity = Engagement.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Engagement> engagements = new ArrayList<>();
+
     public String getId() {
         return id;
     }
@@ -201,7 +204,23 @@ public class Campaign{
     public void setStatus(String status) {
         this.status = status;
     }
-     
+
+    public List<Emails> getEmails() {
+        return emails;
+    }
+
+    public void setEmails(List<Emails> emails) {
+        this.emails = emails;
+    }
+
+    public List<Engagement> getEngagements() {
+        return engagements;
+    }
+
+    public void setEngagements(List<Engagement> engagements) {
+        this.engagements = engagements;
+    }
+
     @Override
     public String toString() {
         return "Campaign{" +
