@@ -119,7 +119,7 @@ public class MailJobService {
                 email.setMail(i % mails.size());
 
                 String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
-                body = body + "<img src='" + openLink + "' alt='pixel'>";
+                body = body + "<img src='" + openLink + "' alt=''>";
 
                 email.setBody(body);
                 initiEmails.add(email);
