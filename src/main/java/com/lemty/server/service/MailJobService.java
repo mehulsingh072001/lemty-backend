@@ -108,20 +108,20 @@ public class MailJobService {
                 if(unsubscribe != null){
                     body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
                 }
-
-                String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + prospect.getId() + "/" + campaignId + "/" + stepIndex  + "/" + (i % mails.size());
-                body = body + "<img src='" + openLink + "' alt='pixel'>";
-
                 Emails email = new Emails();
                 email.setFromEmail(from);
                 email.setToEmail(to);
                 email.setSubject(subject);
-                email.setBody(body);
                 email.setAppUser(user);
                 email.setCampaign(campaign);
                 email.setStep(stepIndex);
                 email.setProspect(prospect);
                 email.setMail(i % mails.size());
+
+                String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
+                body = body + "<img src='" + openLink + "' alt='pixel'>";
+
+                email.setBody(body);
                 initiEmails.add(email);
 
                 // List<Emails> prospectEmails = prospect.getEmails();
