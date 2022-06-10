@@ -4,7 +4,6 @@ import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.Mail;
 import com.lemty.server.helpers.StartDateHelper;
 import com.lemty.server.jobPayload.CampaignPayload;
-import com.lemty.server.jobs.StepJob;
 import com.lemty.server.repo.CampaignRepository;
 
 import org.quartz.*;
@@ -59,20 +58,6 @@ public class StepJobService {
         mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId, startDate);
     }
 
-    private JobDetail buildStepJobDetail(List<String> prospectIds, String campaignId, Integer stepIndex, Integer nextStepIndex, Integer stepNumber, String userId){
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("prospectIds", prospectIds);
-        jobDataMap.put("campaignId", campaignId);
-        jobDataMap.put("nextStepIndex", nextStepIndex);
-        jobDataMap.put("stepIndex", stepIndex);
-        jobDataMap.put("userId", userId);
-        return JobBuilder.newJob(StepJob.class)
-             .withIdentity(UUID.randomUUID().toString(), campaignId)
-             .withDescription("Run Step Job")
-             .storeDurably()
-             .usingJobData(jobDataMap)
-             .build();
-    }
 
  	private Trigger buildTrigger(JobDetail jobDetail, String campaignId){
  		return TriggerBuilder.newTrigger()

@@ -43,12 +43,15 @@ public class GmailController{
         String baseUrl = "https://oauth2.googleapis.com/token?"+code+client_id+client_secret+redirect_uri+grant_type;
         HttpEntity<String> entity = new HttpEntity<String>(headers);
 		Map<String, String> response = restTemplate.postForObject(baseUrl, entity, Map.class);
-        //String infoUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token="+response.get("access_token");
-        String infoUrl = "https://www.googleapis.com/gmail/v1/users/me/profile?access_token="+response.get("access_token");
+        String emailUrl = "https://www.googleapis.com/gmail/v1/users/me/profile?access_token="+response.get("access_token");
+        String infoUrl = "https://www.googleapis.com/oauth2/v3/userinfo?access_token="+response.get("access_token");
         logger.info(infoUrl);
+        Map<String, String> ed = restTemplate.getForObject(emailUrl,Map.class);
         Map<String, String> ud = restTemplate.getForObject(infoUrl,Map.class);
         GmailCreds creds = new GmailCreds();
-        creds.setEmail(ud.get("emailAddress"));
+        logger.info(String.valueOf(ud));
+        creds.setDisplayName(ud.get("given_name"));
+        creds.setEmail(ed.get("emailAddress"));
         creds.setRefreshToken(response.get("refresh_token"));
         gmailCredsService.addNewCreds(creds, userId);
         return new ResponseEntity<>(response, HttpStatus.ACCEPTED);

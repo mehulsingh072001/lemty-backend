@@ -64,7 +64,7 @@ public class GmailHelper {
                 "Content-Type: text/html; charset=utf-8\n\n"+
                 mailRequest.getBody()
                 );
-        String baseUrl = "https://gmail.googleapis.com/gmail/v1/users/singhrathoremehul@gmail.com/messages/send";
+        String baseUrl = "https://gmail.googleapis.com/gmail/v1/users/" + mailRequest.getFrom() + "/messages/send";
 
         JSONObject request = new JSONObject();
 
@@ -76,6 +76,7 @@ public class GmailHelper {
 
         HttpEntity<String> entity = new HttpEntity<String>(request.toString(), headers);
 		Map<Object, Object> response = restTemplate.postForObject(baseUrl, entity, Map.class);
+        logger.info(String.valueOf(response));
         return response;
     }
 
@@ -93,13 +94,14 @@ public class GmailHelper {
                 mailRequest.getBody()
                 );
         // https://gmail.googleapis.com/gmail/v1/users/[USERID]/messages/send?key=[YOUR_API_KEY] HTTP/1.1
-        String baseUrl = "https://gmail.googleapis.com/gmail/v1/users/singhrathoremehul@gmail.com/messages/send";
+        String baseUrl = "https://gmail.googleapis.com/gmail/v1/users/" + mailRequest.getFrom() + "/messages/send";
 
         JSONObject request = new JSONObject();
 
         String access_token = getAccessToken(mailRequest.getFrom());
         headers.setBearerAuth(access_token);
         headers.add("Reference", msgId);
+        headers.add("In-Reply-To", msgId);
         String encodedString = Base64.getEncoder().encodeToString(email.getBytes());
 
         request.put("raw", encodedString);

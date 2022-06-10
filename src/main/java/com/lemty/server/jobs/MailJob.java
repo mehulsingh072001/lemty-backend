@@ -86,9 +86,9 @@ public class MailJob extends QuartzJobBean{
         String threadId;
         if(stepNumber == 1){
             Map<Object, Object> response = gmailHelper.sendMessage(mailRequest);
-            String newThreadId = response.get("threadId").toString();
+            String newThreadId = String.valueOf(response.get("threadId"));
             metadata.setThreadId(newThreadId);
-            metadata.setMsgId(response.get("messageId").toString());
+            metadata.setMsgId(String.valueOf(response.get("id")));
             metadata.setLastCompletedStep(stepNumber);
             prospectMetadataRepository.save(metadata);
             metadata.setStatus("CONTACTED");
