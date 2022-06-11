@@ -48,7 +48,7 @@ public class Emails {
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     private Engagement engagement;
 
     public String getId() {
