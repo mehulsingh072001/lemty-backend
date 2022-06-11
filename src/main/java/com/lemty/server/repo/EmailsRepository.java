@@ -16,5 +16,6 @@ public interface EmailsRepository extends JpaRepository<Emails, String>{
     List<Emails> findByAppUserIdAndStatus(String userId, String status);
     Emails findByCampaignIdAndProspectId(String campaignId, String prospectId);
     List<Emails> findByAppUserIdAndSentDateTimeBetween(String appUserId, Date startTime, Date endTime);
+    List<Emails> findByCampaignIdAndStep(String campaignId, Integer step);
     void deleteAllByProspectId(String prospectId);
 }

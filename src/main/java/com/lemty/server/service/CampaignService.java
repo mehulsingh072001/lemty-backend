@@ -2,13 +2,13 @@ package com.lemty.server.service;
 
 import java.util.*;
 
-import com.lemty.server.LemtyApplication;
 import com.lemty.server.domain.AppUser;
 import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Engagement;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
+import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.repo.CampaignRepository;
 import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.EngagementRepository;
@@ -28,8 +28,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-
 @Service
 public class CampaignService {
     Logger logger = LoggerFactory.getLogger(CampaignService.class);
@@ -43,9 +41,10 @@ public class CampaignService {
     private final ProspectRepository prospectRepository;
     private final EngagementRepository engagementRepository;
     private final EmailsRepository emailsRepository;
+    private final PlaceholderHelper placeholderHelper;
 
     @Autowired
-    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository){
+    public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository, PlaceholderHelper placeholderHelper){
 
         this.scheduler = scheduler;
         this.campaignRepository = campaignRepository;
@@ -56,6 +55,7 @@ public class CampaignService {
         this.prospectRepository = prospectRepository;
         this.engagementRepository = engagementRepository;
         this.emailsRepository = emailsRepository;
+        this.placeholderHelper = placeholderHelper;
     }
 
     //List all campaigns
@@ -113,6 +113,31 @@ public class CampaignService {
         Campaign existingCampaign = campaignRepository.findById(campaignId).get();
         existingCampaign.setSteps(campaign.getSteps());
         campaignRepository.save(existingCampaign);
+        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        logger.info(String.valueOf(steps));
+        for(int i=0; i < steps.size(); i++){
+            Map<String, Object> step = steps.get(i);
+            List<Emails> emails = emailsRepository.findByCampaignIdAndStep(campaignId, i);
+            logger.info(String.valueOf(emails));
+            List<Map<String, Object>> mails = stepService.getMailsFromSteps(campaignId, i);
+            List<Emails> updatedEmails = new ArrayList<>();
+            for(Emails email : emails){
+                logger.info(String.valueOf(email));
+                Prospect prospect = email.getProspect();
+                String from = step.get("whichEmail").toString();
+                String subject = (String) mails.get(email.getMail()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
+                String body = (String) mails.get(email.getMail()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
+                subject = placeholderHelper.fieldsReplacer(subject, prospect);
+                body = placeholderHelper.fieldsReplacer(body, prospect);
+                body = placeholderHelper.bodyLinkReplacer(body, prospect.getId(), campaignId, i, (i % mails.size()));
+
+                email.setFromEmail(from);
+                email.setSubject(subject);
+                email.setBody(body);
+                updatedEmails.add(email);
+            }
+            emailsRepository.saveAll(updatedEmails);
+        }
     }
 
     public void deleteCampaign(String campaignId){

@@ -71,7 +71,7 @@ public class PreviewMailJob extends QuartzJobBean{
         MailRequest mailRequest = new MailRequest(from, subject, to, body);
         String threadId;
         if(stepNumber == 1){
-            String newThreadId = gmailHelper.sendMessage(mailRequest);
+            String newThreadId = String.valueOf(gmailHelper.sendMessage(mailRequest));
             logger.info(String.valueOf(metadata));
             metadata.setThreadId(newThreadId);
             metadata.setLastCompletedStep(stepNumber);
@@ -79,7 +79,7 @@ public class PreviewMailJob extends QuartzJobBean{
         }
         else{
             threadId = metadata.getThreadId();
-            gmailHelper.sendMessageInThread(mailRequest, threadId);
+            gmailHelper.sendMessageInThread(mailRequest, threadId, "fdfd");
         }
 
         try {
