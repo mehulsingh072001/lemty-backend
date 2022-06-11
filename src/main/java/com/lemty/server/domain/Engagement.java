@@ -84,14 +84,6 @@ public class Engagement {
         this.prospectMetadata = prospectMetadata;
     }
 
-    public Emails getEmails() {
-        return emails;
-    }
-
-    public void setEmails(Emails emails) {
-        this.emails = emails;
-    }
-
     public Campaign getCampaign() {
         return campaign;
     }
