@@ -93,9 +93,8 @@ public class PlaceholderHelper {
         return body;
     }
 
-    public String bodyLinkReplacer(String body, String prospectId, String campaignId, Integer stepNumber, Integer mailNumber){
-        String trackLink = env.getProperty("track.url") + "/clicked/" + prospectId + "/" + campaignId + "/" + stepNumber+ "/" + mailNumber;
-        // String oldLinks = StringUtils.substringBetween(body, "href=\"", "\"");
+    public String bodyLinkReplacer(String body, String emailId){
+        String trackLink = env.getProperty("track.url") + "/clicked/" + emailId;
         String str = "href=\"";
         if(StringUtils.contains(body, str)){
             String newString = trackLink + "?url=";

@@ -63,11 +63,6 @@ public class MailJobService {
 
         //Scheduling parameters
         DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
-        int minSeconds = deliveribilitySettings.getMinInterval();
-        int maxSeconds = deliveribilitySettings.getMaxInterval();
-        int seconds = deliveribilitySettings.getSeconds();
-        ZoneId zoneId = ZoneId.of(campaign.getTimezone());
-
         String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
 
         Object days = step.get("days");
@@ -102,7 +97,8 @@ public class MailJobService {
                 String body = (String) mails.get(i % mails.size()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
                 subject = placeholderHelper.fieldsReplacer(subject, prospect);
                 body = placeholderHelper.fieldsReplacer(body, prospect);
-                body = placeholderHelper.bodyLinkReplacer(body, prospect.getId(), campaignId, stepIndex, (i % mails.size()));
+                Emails email = new Emails();
+                body = placeholderHelper.bodyLinkReplacer(body, email.getId());
 
                 if(signatures.size() > 0){
                     body = placeholderHelper.signatureReplacer(body, signatures.get(0));
@@ -110,7 +106,6 @@ public class MailJobService {
                 if(unsubscribe != null){
                     body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
                 }
-                Emails email = new Emails();
                 email.setFromEmail(from);
                 email.setToEmail(to);
                 email.setSubject(subject);

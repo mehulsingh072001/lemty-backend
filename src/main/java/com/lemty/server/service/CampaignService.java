@@ -129,7 +129,7 @@ public class CampaignService {
                 String body = (String) mails.get(email.getMail()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
                 subject = placeholderHelper.fieldsReplacer(subject, prospect);
                 body = placeholderHelper.fieldsReplacer(body, prospect);
-                body = placeholderHelper.bodyLinkReplacer(body, prospect.getId(), campaignId, i, (i % mails.size()));
+                body = placeholderHelper.bodyLinkReplacer(body, email.getId());
 
                 email.setFromEmail(from);
                 email.setSubject(subject);
