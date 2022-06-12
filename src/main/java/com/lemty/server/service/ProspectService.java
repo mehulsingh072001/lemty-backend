@@ -431,7 +431,7 @@ public class ProspectService {
     }
 
     //Search
-    public List<Prospect> searchByKeyword(String keyword) {
-        return prospectRepository.findByKeyword(keyword.toLowerCase());
+    public List<Prospect> searchByKeyword(String userId, String keyword) {
+        return prospectRepository.findByKeyword(userId, keyword.toString());
     }
 }

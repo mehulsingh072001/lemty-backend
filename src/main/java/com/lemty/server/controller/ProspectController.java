@@ -176,8 +176,8 @@ public class ProspectController{
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Prospect>> searchByKeyword(@RequestParam("keyword") String keyword){
-        List<Prospect> prospects = prospectService.searchByKeyword(keyword);
+    public ResponseEntity<List<Prospect>> searchByKeyword(@RequestParam("userId") String userId, @RequestParam("keyword") String keyword){
+        List<Prospect> prospects = prospectService.searchByKeyword(userId, keyword);
         return new ResponseEntity<>(prospects, HttpStatus.ACCEPTED);
     }
 }

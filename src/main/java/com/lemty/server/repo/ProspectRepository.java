@@ -20,7 +20,10 @@ public interface ProspectRepository extends JpaRepository<Prospect, String>{
     Page<Prospect> findByAppUserIdAndStatusIs(String userId, String status, Pageable pageable);
     Page<Prospect> findByProspectListIdAndStatus(String listId, String status, Pageable pageable);
 
-    @Query(value = "SELECT p FROM Prospect p WHERE LOWER(p.firstName) like :keyword% or LOWER(p.lastName) like :keyword% or LOWER(p.prospectEmail) like :keyword% or LOWER(p.prospectCompany) like :keyword%")
-    List<Prospect> findByKeyword(@Param("keyword") String keyword);
+    @Query(value = "SELECT p FROM Prospect p WHERE LOWER(p.firstName) like :keyword% and p.appUser.id = :userId "
+     + "or LOWER(p.lastName) LIKE concat('%', :keyword ,'%') and p.appUser.id = :userId " 
+     + "or LOWER(p.prospectEmail) like lower(concat('%', :keyword ,'%')) and p.appUser.id = :userId " 
+     + "or LOWER(p.prospectCompany) like :keyword% and p.appUser.id = :userId")
+    List<Prospect> findByKeyword(@Param("userId") String userId, @Param("keyword") String keyword);
     Boolean existsByProspectEmail(String email);
 }
