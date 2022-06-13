@@ -30,6 +30,7 @@ public class Campaign{
     private String completed;
     private String status;
     private Map[] steps;
+    private Integer sent = 0;
 
     @Column(updatable = false)
     @CreationTimestamp
@@ -219,6 +220,14 @@ public class Campaign{
 
     public void setEngagements(List<Engagement> engagements) {
         this.engagements = engagements;
+    }
+
+    public Integer getSent() {
+        return sent;
+    }
+
+    public void setSent(Integer sent) {
+        this.sent = sent;
     }
 
     @Override

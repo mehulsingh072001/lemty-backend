@@ -85,7 +85,6 @@ public class EmailsService {
             logger.info(String.valueOf(sentDate));
             if(sentDate.isEqual(localendDate)){
                 count++;
-                logger.info("Yes");
             }
         }
         data.put("date", localendDate);
@@ -105,5 +104,29 @@ public class EmailsService {
         response.put("upcoming", upcomingCount);
         response.put("sent", sentCount);
         return response;
+    }
+
+    public Integer appUserTodaySentCount(String userId, LocalDate today){
+        Integer sentToday = 0;
+        List<Emails> emails = emailsRepository.findByAppUserIdAndStatus(userId, "SENT");
+        for(Emails email : emails){
+            LocalDate sentDate = email.getSentDateTime().toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+            if(sentDate.isEqual(today)){
+                sentToday = sentToday + 1;
+            }
+        }
+        return sentToday;
+    }
+
+    public Integer campaignTodaySentCount(String campaignId, LocalDate today){
+        Integer sentToday = 0;
+        List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "SENT");
+        for(Emails email : emails){
+            LocalDate sentDate = email.getSentDateTime().toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+            if(sentDate.isEqual(today)){
+                sentToday = sentToday + 1;
+            }
+        }
+        return sentToday;
     }
 }

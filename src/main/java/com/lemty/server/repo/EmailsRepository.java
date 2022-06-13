@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface EmailsRepository extends JpaRepository<Emails, String>{
+public interface EmailsRepository extends JpaRepository<Emails, String> {
     List<Emails> findByCampaignId(String campaignId);
     List<Emails> findByProspectId(String prospectId);
     List<Emails> findByCampaignIdAndStatus(String campaignId, String status);

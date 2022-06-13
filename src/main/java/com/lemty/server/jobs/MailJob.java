@@ -1,6 +1,7 @@
 package com.lemty.server.jobs;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -19,6 +20,7 @@ import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
 import com.lemty.server.service.DeliveribilitySettingsService;
 import com.lemty.server.service.EmailSignatureService;
+import com.lemty.server.service.EmailsService;
 import com.lemty.server.service.MailJobService;
 import com.lemty.server.service.StepService;
 import com.lemty.server.service.UnsubscribeService;
@@ -41,10 +43,11 @@ public class MailJob extends QuartzJobBean{
     private final EmailsRepository emailsRepository;
     private final MailJobService mailJobService;
     private final DeliveribilitySettingsService deliveribilitySettingsService;
+    private final EmailsService emailsService;
     @Autowired
     private Environment env;
 
-    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, EmailsRepository emailsRepository, MailJobService mailJobService, DeliveribilitySettingsService deliveribilitySettingsService){
+    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, EmailsRepository emailsRepository, MailJobService mailJobService, DeliveribilitySettingsService deliveribilitySettingsService, EmailsService emailsService){
         this.gmailHelper = gmailHelper;
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.scheduler = scheduler;
@@ -54,6 +57,7 @@ public class MailJob extends QuartzJobBean{
         this.emailsRepository = emailsRepository;
         this.mailJobService = mailJobService;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
+        this.emailsService = emailsService;
     }
 
     @Override
@@ -105,6 +109,9 @@ public class MailJob extends QuartzJobBean{
         email.setSentDateTime(Date.from(sendTime.toInstant()));
         emailsRepository.save(email);
 
+        campaign.setSent(campaign.getSent() + 1);
+        campaignRepository.save(campaign);
+
         List<String> prospectIds = new ArrayList<>();
         prospectIds.add(prospectId);
 
@@ -140,20 +147,30 @@ public class MailJob extends QuartzJobBean{
             int seconds = deliveribilitySettings.getSeconds();
             ZoneId zoneId = ZoneId.of(campaign.getTimezone());
 
+
             //Interval between emails
             Integer interval;
             if(deliveribilitySettings.getEmailInterval().equals("random")){
                 Random r = new Random();
                 int result = r.nextInt(maxSeconds - minSeconds) + minSeconds;
-                interval = result / 60;
+                interval = result;
             }
             else{
-                interval = seconds / 60;
+                interval = seconds;
             }
 
+            ZonedDateTime startDateTime = ZonedDateTime.now().plusSeconds(interval);
+
+            Integer userSentCount = emailsService.appUserTodaySentCount(userId, LocalDate.now());
+            Integer campaignSentCount = emailsService.campaignTodaySentCount(campaignId, LocalDate.now());
+
+            if(userSentCount % deliveribilitySettings.getDailyEmailLimit() == 0 || campaignSentCount % campaign.getDailyLimit() == 0){
+                startDateTime.plusDays(1);
+            }
+            
             try {
                 JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-                Trigger trigger = buildMailTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, interval);
+                Trigger trigger = buildMailTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, interval, Date.from(startDateTime.toInstant().atZone(zoneId).toInstant()));
                 scheduler.scheduleJob(trigger);
                 if(trigger.getNextFireTime().after(trigger.getStartTime())){
                     List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
@@ -176,11 +193,12 @@ public class MailJob extends QuartzJobBean{
 
     }
 
-    private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, Integer interval){
+    private Trigger buildMailTrigger(JobDetail jobDetail, String days, String campaignId, String timezone,  String window, Integer interval, Date startDate){
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
                 .withIdentity(jobDetail.getKey().getName(), campaignId)
                 .withDescription("Mail Job")
+                .startAt(startDate)
                 .withSchedule(CronScheduleBuilder
                         .cronSchedule( "0  1/" + interval + " " + window + "  ? * " + days)
                         .inTimeZone(TimeZone.getTimeZone(timezone))

@@ -16,6 +16,7 @@ public class DeliveribilitySettings {
     private Integer seconds = 0;
     private Integer minInterval = 0;
     private Integer maxInterval = 0;
+    private Integer dailyEmailLimit = 100;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
@@ -76,6 +77,14 @@ public class DeliveribilitySettings {
 
     public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
+    }
+
+    public Integer getDailyEmailLimit() {
+        return dailyEmailLimit;
+    }
+
+    public void setDailyEmailLimit(Integer dailyEmailLimit) {
+        this.dailyEmailLimit = dailyEmailLimit;
     }
 
     @Override
