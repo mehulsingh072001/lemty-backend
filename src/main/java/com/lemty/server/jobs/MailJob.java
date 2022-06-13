@@ -25,6 +25,7 @@ import com.lemty.server.service.MailJobService;
 import com.lemty.server.service.StepService;
 import com.lemty.server.service.UnsubscribeService;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,6 +161,7 @@ public class MailJob extends QuartzJobBean{
             }
 
             ZonedDateTime startDateTime = ZonedDateTime.now().plusSeconds(interval);
+            Date today = Date.from(Instant.now());
 
             Integer userSentCount = emailsService.appUserTodaySentCount(userId, LocalDate.now());
             Integer campaignSentCount = emailsService.campaignTodaySentCount(campaignId, LocalDate.now());
@@ -174,7 +176,7 @@ public class MailJob extends QuartzJobBean{
                 Trigger trigger = buildMailTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, interval, Date.from(startDateTime.toInstant().atZone(zoneId).toInstant()));
                 scheduler.scheduleJob(trigger);
                 logger.info(String.valueOf(trigger.getStartTime()));
-                if(trigger.getNextFireTime().after(trigger.getStartTime())){
+                if(!DateUtils.isSameDay(today, trigger.getStartTime())){
                     List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                     for(Emails email2 : emails){
                         email2.setStatus("UPCOMING");
