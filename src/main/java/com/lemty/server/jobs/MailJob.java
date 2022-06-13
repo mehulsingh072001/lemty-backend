@@ -166,12 +166,14 @@ public class MailJob extends QuartzJobBean{
 
             if(userSentCount % deliveribilitySettings.getDailyEmailLimit() == 0 || campaignSentCount % campaign.getDailyLimit() == 0){
                 startDateTime.plusDays(1);
+                logger.info(String.valueOf(startDateTime));
             }
             
             try {
                 JobDetail jobDetail = scheduler.getJobDetail(jobKey);
                 Trigger trigger = buildMailTrigger(jobDetail, daysString, campaignId, campaign.getTimezone(), window, interval, Date.from(startDateTime.toInstant().atZone(zoneId).toInstant()));
                 scheduler.scheduleJob(trigger);
+                logger.info(String.valueOf(trigger.getStartTime()));
                 if(trigger.getNextFireTime().after(trigger.getStartTime())){
                     List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                     for(Emails email2 : emails){
@@ -179,7 +181,6 @@ public class MailJob extends QuartzJobBean{
                     }
                     emailsRepository.saveAll(emails);
                 }
-                logger.info(String.valueOf(trigger.getNextFireTime()));
             } catch (SchedulerException e) {
                 e.printStackTrace();
             }
@@ -200,7 +201,7 @@ public class MailJob extends QuartzJobBean{
                 .withDescription("Mail Job")
                 .startAt(startDate)
                 .withSchedule(CronScheduleBuilder
-                        .cronSchedule( "0  1/" + interval + " " + window + "  ? * " + days)
+                        .cronSchedule("5 * " + window + "  ? * " + days)
                         .inTimeZone(TimeZone.getTimeZone(timezone))
                         .withMisfireHandlingInstructionFireAndProceed()
                 )
