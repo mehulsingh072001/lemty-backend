@@ -36,6 +36,7 @@ public class DeliveribilitySettingsService {
         existingSettings.setEmailInterval(settings.getEmailInterval());
         existingSettings.setMinInterval(settings.getMinInterval());
         existingSettings.setMaxInterval(settings.getMaxInterval());
+        existingSettings.setDailyEmailLimit(settings.getDailyEmailLimit());
         
         return deliveribilitySettingsRepository.saveAndFlush(existingSettings);
     }

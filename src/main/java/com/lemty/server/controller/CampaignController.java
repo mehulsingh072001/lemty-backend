@@ -47,7 +47,7 @@ public class CampaignController{
         return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 
-    @PutMapping("/{campaignId}")
+    @PutMapping("update/{campaignId}")
     public ResponseEntity<Campaign> updateCampaign(@RequestBody Campaign newCampaign, @PathVariable("campaignId") String campaignId){
         campaignService.updateCampaignSettings(newCampaign, campaignId);
         return new ResponseEntity<>(newCampaign, HttpStatus.ACCEPTED);

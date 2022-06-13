@@ -94,11 +94,9 @@ public class CampaignService {
     public void updateCampaignSettings(Campaign newCampaign, String campaignId){
         Campaign campaign = campaignRepository.findById(campaignId).get();
 
-        campaign.setId(campaign.getId());
         campaign.setTimezone(newCampaign.getTimezone());
         campaign.setCampaignStop(newCampaign.getCampaignStop());
-        campaign.setProspectCount(newCampaign.getProspectCount());
-        campaign.setSteps(newCampaign.getSteps());
+        campaign.setDailyLimit(newCampaign.getDailyLimit());
 
         campaignRepository.save(campaign);
     }
