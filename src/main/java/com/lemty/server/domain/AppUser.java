@@ -12,7 +12,6 @@ public class AppUser {
     private String lastName;
     private String username;
     private String password;
-    // @ManyToMany(fetch = EAGER)
     private String role;
     private String company_name;
     private Long phone_number;
@@ -36,6 +35,9 @@ public class AppUser {
 
     @OneToOne(targetEntity = Unsubscribe.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Unsubscribe unsubscribe;
+
+    @OneToOne(targetEntity = IntentDetection.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private IntentDetection intentDetection;
 
     @OneToOne(targetEntity = DeliveribilitySettings.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private DeliveribilitySettings deliveribilitySettings;

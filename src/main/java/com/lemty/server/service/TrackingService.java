@@ -23,13 +23,15 @@ public class TrackingService {
     private final StepService stepService;
     private final EngagementRepository engagementRepository;
     private final EmailsRepository emailsRepository;
+    private final IntentDetectionService intentDetectionService;
 
-    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository) {
+    public TrackingService(ProspectMetadataRepository prospectMetadataRepository, StepService stepService, CampaignRepository campaignRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository, IntentDetectionService intentDetectionService) {
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.stepService = stepService;
         this.campaignRepository = campaignRepository;
         this.engagementRepository = engagementRepository;
         this.emailsRepository = emailsRepository;
+        this.intentDetectionService = intentDetectionService;
     }
 
 
@@ -118,6 +120,7 @@ public class TrackingService {
            campaign.setTotalOpens(campaign.getTotalOpens() + 1);
        }
        campaignRepository.save(campaign);
+       intentDetectionService.detectOpenIntent(prospectId);
     }
 
 
@@ -204,5 +207,6 @@ public class TrackingService {
            campaign.setTotalClicks(campaign.getTotalOpens() + 1);
        }
        campaignRepository.save(campaign);
+       intentDetectionService.detectClickIntent(prospectId);
     }
 }

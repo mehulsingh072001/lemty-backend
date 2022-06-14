@@ -58,6 +58,8 @@ public class Prospect{
     private Boolean unsubscribed = false;
 
     private String status;
+    private Integer points = 0;
+    private Boolean hot;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -321,6 +323,22 @@ public class Prospect{
 
     public void setEmails(List<Emails> emails) {
         this.emails = emails;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public Boolean getHot() {
+        return hot;
+    }
+
+    public void setHot(Boolean hot) {
+        this.hot = hot;
     }
 
     @Override

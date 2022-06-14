@@ -3,7 +3,9 @@ package com.lemty.server.service;
 import com.lemty.server.LemtyApplication;
 import com.lemty.server.domain.AppUser;
 import com.lemty.server.domain.DeliveribilitySettings;
+import com.lemty.server.domain.IntentDetection;
 import com.lemty.server.domain.Role;
+import com.lemty.server.repo.IntentDetectionRepository;
 import com.lemty.server.repo.RoleRepo;
 import com.lemty.server.repo.UserRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -28,14 +30,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
     private final DeliveribilitySettingsService deliveribilitySettingsService;
+    private final IntentDetectionRepository intentDetectionRepository;
     Logger logger = LoggerFactory.getLogger(LemtyApplication.class);
 
 
-    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, DeliveribilitySettingsService deliveribilitySettingsService) {
+    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, DeliveribilitySettingsService deliveribilitySettingsService, IntentDetectionRepository intentDetectionRepository) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
+        this.intentDetectionRepository = intentDetectionRepository;
     }
 
     @Override
@@ -70,6 +74,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             settings.setEmailInterval("custom");
 
             deliveribilitySettingsService.createDeliveribilitySettings(settings, savedUser.getId());
+
+            IntentDetection intentDetection = new IntentDetection();
+            intentDetection.setAppUser(savedUser);
+            intentDetectionRepository.save(intentDetection);
             return savedUser;
 
         }
