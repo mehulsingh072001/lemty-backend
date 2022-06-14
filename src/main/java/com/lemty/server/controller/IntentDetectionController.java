@@ -27,8 +27,8 @@ public class IntentDetectionController {
 
 
     @PutMapping("/update")
-    public ResponseEntity<IntentDetection> updateIntentDetection(@RequestBody IntentDetection intentDetection, @RequestParam("userId") String appUserId){
-        IntentDetection response = intentDetectionService.updateIntentDetection(intentDetection, appUserId);
+    public ResponseEntity<IntentDetection> updateIntentDetection(@RequestBody IntentDetection intentDetection, @RequestParam("intentDetectionId") String intentDetectionId){
+        IntentDetection response = intentDetectionService.updateIntentDetection(intentDetection, intentDetectionId);
         return new ResponseEntity<IntentDetection>(response, HttpStatus.ACCEPTED);
     }
 }
