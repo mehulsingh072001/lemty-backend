@@ -10,4 +10,5 @@ import java.util.*;
 public interface CampaignRepository extends JpaRepository<Campaign, String>{
     Campaign findByName(String campaign_name);
     List<Campaign> findByAppUserId(String userId, Sort createdAt);
+    void deleteAllByAppUserId(String userId);
 }

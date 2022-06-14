@@ -11,4 +11,5 @@ public interface EngagementRepository extends JpaRepository<Engagement, String> 
     List<Engagement> findByProspectMetadataId(String id);
     List<Engagement> findByCampaignId(String id);
     Engagement findByProspectMetadataIdAndStepNumber(String id, Integer stepNumber);
+    void deleteByCampaignId(String campaignId);
 }

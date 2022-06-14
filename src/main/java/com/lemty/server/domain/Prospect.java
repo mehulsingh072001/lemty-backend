@@ -2,6 +2,9 @@ package com.lemty.server.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +81,7 @@ public class Prospect{
     )
     private List<Campaign> campaigns = new ArrayList<>();
 
-    @OneToMany(mappedBy = "id", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
     private List<ProspectMetadata> prospectMetadatas = new ArrayList<>();
 
     @OneToMany(targetEntity = Emails.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)

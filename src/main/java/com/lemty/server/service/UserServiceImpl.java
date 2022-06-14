@@ -1,16 +1,15 @@
 package com.lemty.server.service;
 
 import com.lemty.server.LemtyApplication;
-import com.lemty.server.domain.AppUser;
-import com.lemty.server.domain.DeliveribilitySettings;
-import com.lemty.server.domain.IntentDetection;
-import com.lemty.server.domain.Role;
-import com.lemty.server.repo.IntentDetectionRepository;
-import com.lemty.server.repo.RoleRepo;
-import com.lemty.server.repo.UserRepo;
+import com.lemty.server.domain.*;
+import com.lemty.server.repo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,15 +30,29 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final DeliveribilitySettingsService deliveribilitySettingsService;
     private final IntentDetectionRepository intentDetectionRepository;
+    private final ProspectRepository prospectRepository;
+    private final EmailsRepository emailsRepository;
+    private final CampaignRepository campaignRepository;
+    private final ProspectMetadataRepository prospectMetadataRepository;
+    private final EngagementRepository engagementRepository;
+    private final GmailCredsRepo gmailCredsRepo;
+    private final DeliveribilitySettingsRepository deliveribilitySettingsRepository;
     Logger logger = LoggerFactory.getLogger(LemtyApplication.class);
 
 
-    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, DeliveribilitySettingsService deliveribilitySettingsService, IntentDetectionRepository intentDetectionRepository) {
+    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, DeliveribilitySettingsService deliveribilitySettingsService, IntentDetectionRepository intentDetectionRepository, ProspectRepository prospectRepository, EmailsRepository emailsRepository, CampaignRepository campaignRepository, ProspectMetadataRepository prospectMetadataRepository, EngagementRepository engagementRepository, GmailCredsRepo gmailCredsRepo, DeliveribilitySettingsRepository deliveribilitySettingsRepository) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
         this.intentDetectionRepository = intentDetectionRepository;
+        this.prospectRepository = prospectRepository;
+        this.emailsRepository = emailsRepository;
+        this.campaignRepository = campaignRepository;
+        this.prospectMetadataRepository = prospectMetadataRepository;
+        this.engagementRepository = engagementRepository;
+        this.gmailCredsRepo = gmailCredsRepo;
+        this.deliveribilitySettingsRepository = deliveribilitySettingsRepository;
     }
 
     @Override
@@ -166,6 +179,27 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     public void deleteUser(String userId){
+        List<Prospect> prospects = new ArrayList<>();
+        Pageable paging = PageRequest.of(0, Integer.MAX_VALUE);
+
+        Page<Prospect> pageProspects;
+        pageProspects = prospectRepository.findByAppUserId(userId, paging);
+        prospects = pageProspects.getContent();
+        for(Prospect prospect : prospects){
+            List<Emails> emails = emailsRepository.findByProspectId(prospect.getId());
+            emailsRepository.deleteAllInBatch(emails);
+
+            List<ProspectMetadata> metadatas = prospectMetadataRepository.findByProspectId(prospect.getId());
+            prospectMetadataRepository.deleteAllInBatch(metadatas);
+        }
+
+        List<Campaign> campaigns = campaignRepository.findByAppUserId(userId, Sort.by("createdAt"));
+        for(Campaign campaign : campaigns){
+            engagementRepository.deleteByCampaignId(campaign.getId());
+        }
+        gmailCredsRepo.deleteAllByAppUserId(userId);
+        deliveribilitySettingsRepository.deleteByAppUserId(userId);
+        intentDetectionRepository.deleteByAppUserId(userId);
         userRepo.deleteById(userId);
     }
     

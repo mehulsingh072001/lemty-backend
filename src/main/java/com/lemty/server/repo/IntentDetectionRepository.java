@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface IntentDetectionRepository extends JpaRepository<IntentDetection, String> {
     IntentDetection findByAppUserId(String appUserId);
+    void deleteByAppUserId(String userId);
 }

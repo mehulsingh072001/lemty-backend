@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DeliveribilitySettingsRepository extends JpaRepository<DeliveribilitySettings, String> {
     DeliveribilitySettings findByAppUserId(String userId);
+    void deleteByAppUserId(String userId);
 }
