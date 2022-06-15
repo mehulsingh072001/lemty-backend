@@ -118,6 +118,7 @@ public class MailJob extends QuartzJobBean{
 
         if(nextStepIndex != 0){
             Map<String, Object> nextStep = steps.get(nextStepIndex);
+            logger.info(String.valueOf(nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"))));
             Integer dayGap = Integer.parseInt((String) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap")));
             Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
             Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
