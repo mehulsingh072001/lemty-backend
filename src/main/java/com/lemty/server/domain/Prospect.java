@@ -75,7 +75,7 @@ public class Prospect{
     private ProspectList prospectList;
 
     @JsonIgnore
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name = "campaign_prospects", joinColumns = @JoinColumn(name = "prospect_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "campaign_id", referencedColumnName = "id")
     )

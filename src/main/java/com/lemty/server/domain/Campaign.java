@@ -44,7 +44,7 @@ public class Campaign{
     @JoinColumn(name = "prospect_list_id")
     private ProspectList prospectLists;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name = "campaign_prospects", joinColumns = @JoinColumn(name = "campaign_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "prospect_id", referencedColumnName = "id")
     )

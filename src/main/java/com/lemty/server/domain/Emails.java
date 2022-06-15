@@ -44,7 +44,7 @@ public class Emails {
     private AppUser appUser;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
