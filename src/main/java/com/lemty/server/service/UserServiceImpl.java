@@ -185,12 +185,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Page<Prospect> pageProspects;
         pageProspects = prospectRepository.findByAppUserId(userId, paging);
         prospects = pageProspects.getContent();
-
-        List<Campaign> campaigns = campaignRepository.findByAppUserId(userId, Sort.by("createdAt"));
-        for(Campaign campaign : campaigns){
-            engagementRepository.deleteByCampaignId(campaign.getId());
-        }
-
         for(Prospect prospect : prospects){
             List<Emails> emails = emailsRepository.findByProspectId(prospect.getId());
             emailsRepository.deleteAllInBatch(emails);
@@ -199,6 +193,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             prospectMetadataRepository.deleteAllInBatch(metadatas);
         }
 
+        List<Campaign> campaigns = campaignRepository.findByAppUserId(userId, Sort.by("createdAt"));
+        for(Campaign campaign : campaigns){
+            engagementRepository.deleteByCampaignId(campaign.getId());
+        }
         gmailCredsRepo.deleteAllByAppUserId(userId);
         deliveribilitySettingsRepository.deleteByAppUserId(userId);
         intentDetectionRepository.deleteByAppUserId(userId);

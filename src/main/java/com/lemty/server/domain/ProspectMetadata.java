@@ -28,7 +28,7 @@ public class ProspectMetadata implements Serializable {
     @JoinColumn(name = "prospect_id")
     private Prospect prospect;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Engagement> engagements = new ArrayList<>();
 
     public String getId() {
