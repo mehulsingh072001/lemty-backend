@@ -16,6 +16,8 @@ public class ProspectMetadata implements Serializable {
     private String campaignId;
     // private String prospectId;
     private Integer lastCompletedStep;
+
+    private Integer nextStep;
     private String threadId;
     private String msgId;
     private Integer opens = 0;
@@ -125,6 +127,14 @@ public class ProspectMetadata implements Serializable {
 
     public void setMsgId(String msgId) {
         this.msgId = msgId;
+    }
+
+    public Integer getNextStep() {
+        return nextStep;
+    }
+
+    public void setNextStep(Integer nextStep) {
+        this.nextStep = nextStep;
     }
 
     @Override
