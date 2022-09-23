@@ -173,6 +173,7 @@ public class MailJobService {
             else{
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                 for(Emails email2 : emails){
+                    email2.setStartTime(emailStartDateTime);
                     email2.setStatus("UPCOMING");
                 }
                 emailsRepository.saveAll(emails);
