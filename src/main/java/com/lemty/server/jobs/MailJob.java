@@ -95,6 +95,7 @@ public class MailJob extends QuartzJobBean{
             metadata.setThreadId(newThreadId);
             metadata.setMsgId(String.valueOf(response.get("id")));
             metadata.setLastCompletedStep(stepNumber);
+            metadata.setNextStep(nextStepIndex + 1);
             prospectMetadataRepository.save(metadata);
             metadata.setStatus("CONTACTED");
         }
@@ -130,7 +131,7 @@ public class MailJob extends QuartzJobBean{
         Emails nextEmail = emailsRepository.findByCampaignIdAndProspectId(campaignId, nextProspectId);
         if(nextEmail != null){
             logger.info(String.valueOf(nextEmail));
-            //Trigger mail job
+            //Trigger next mail job
             JobKey jobKey = new JobKey(nextEmail.getId() + "-" + campaignId, campaignId);
             logger.info(String.valueOf(jobKey));
 
@@ -186,6 +187,10 @@ public class MailJob extends QuartzJobBean{
             } catch (SchedulerException e) {
                 e.printStackTrace();
             }
+        }
+        else{
+            campaign.setStatus("COMPLETED");
+            campaignRepository.save(campaign);
         }
 
         try {

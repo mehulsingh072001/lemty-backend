@@ -87,65 +87,68 @@ public class MailJobService {
         List<Emails> initiEmails = new ArrayList<>();
 
         ZonedDateTime currentZonedDateTime = ZonedDateTime.now();
+        //Job Scheduling
         for(int i=0; i < prospectIds.size(); i++){
-            //Mail Data
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
-            if(!prospect.getUnsubscribed()){
-                String from = step.get("whichEmail").toString();
-                String to = prospect.getProspectEmail();
-                String subject = (String) mails.get(i % mails.size()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
-                String body = (String) mails.get(i % mails.size()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
-                subject = placeholderHelper.fieldsReplacer(subject, prospect);
-                body = placeholderHelper.fieldsReplacer(body, prospect);
-                Emails email = new Emails();
-                body = placeholderHelper.bodyLinkReplacer(body, email.getId());
+            ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospect.getId(), campaignId);
+                //Mail Data
+                if(!prospect.getUnsubscribed()){
+                    String from = step.get("whichEmail").toString();
+                    String to = prospect.getProspectEmail();
+                    String subject = (String) mails.get(i % mails.size()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
+                    String body = (String) mails.get(i % mails.size()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
+                    subject = placeholderHelper.fieldsReplacer(subject, prospect);
+                    body = placeholderHelper.fieldsReplacer(body, prospect);
+                    Emails email = new Emails();
+                    body = placeholderHelper.bodyLinkReplacer(body, email.getId());
 
-                if(signatures.size() > 0){
-                    body = placeholderHelper.signatureReplacer(body, signatures.get(0));
+                    if(signatures.size() > 0){
+                        body = placeholderHelper.signatureReplacer(body, signatures.get(0));
+                    }
+                    if(unsubscribe != null){
+                        body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
+                    }
+                    email.setFromEmail(from);
+                    email.setToEmail(to);
+                    email.setSubject(subject);
+                    email.setAppUser(user);
+                    email.setCampaign(campaign);
+                    email.setStep(stepIndex);
+                    email.setProspect(prospect);
+                    email.setMail(i % mails.size());
+
+                    Engagement engagement = new Engagement();
+                    engagement.setOpens(engagement.getOpens() + 1);
+                    engagement.setStepNumber(stepNumber + 1);
+                    engagement.setCampaign(campaignRepository.getById(campaignId));
+                    engagementRepository.save(engagement);
+                    email.setEngagement(engagement);
+                    emailsRepository.save(email);
+
+                    String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
+                    body = body + "<img src='" + openLink + "' alt=''>";
+
+                    email.setBody(body);
+                    initiEmails.add(email);
+
+                    String nextProspectId = "";
+                    if((i + 1) == prospectIds.size()){
+                        nextProspectId = "";
+                    }
+                    else{
+                        nextProspectId = prospectIds.get(i + 1);
+                    }
+                    logger.info(nextProspectId);
+
+                    try {
+                        JobDetail jobDetail = buildMailJobDetail(campaignId, prospect.getId(), stepIndex, userId, nextStepIndex, afterNextStepIndex, email.getId(), nextProspectId);
+                        scheduler.addJob(jobDetail, true);
+
+                    } catch (SchedulerException e) {
+                        e.printStackTrace();
+                    }
                 }
-                if(unsubscribe != null){
-                    body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
-                }
-                email.setFromEmail(from);
-                email.setToEmail(to);
-                email.setSubject(subject);
-                email.setAppUser(user);
-                email.setCampaign(campaign);
-                email.setStep(stepIndex);
-                email.setProspect(prospect);
-                email.setMail(i % mails.size());
-
-                Engagement engagement = new Engagement();
-                engagement.setOpens(engagement.getOpens() + 1);
-                engagement.setStepNumber(stepNumber + 1);
-                engagement.setCampaign(campaignRepository.getById(campaignId));
-                engagementRepository.save(engagement);
-                email.setEngagement(engagement);
-                emailsRepository.save(email);
-
-                String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
-                body = body + "<img src='" + openLink + "' alt=''>";
-
-                email.setBody(body);
-                initiEmails.add(email);
-
-                String nextProspectId = "";
-                if((i + 1) == prospectIds.size()){
-                    nextProspectId = "";
-                }
-                else{
-                    nextProspectId = prospectIds.get(i + 1);
-                }
-                logger.info(nextProspectId);
-
-                try {
-                    JobDetail jobDetail = buildMailJobDetail(campaignId, prospect.getId(), stepIndex, userId, nextStepIndex, afterNextStepIndex, email.getId(), nextProspectId);
-                    scheduler.addJob(jobDetail, true);
-
-                } catch (SchedulerException e) {
-                    e.printStackTrace();
-                }
-            }
+            
         }
         emailsRepository.saveAll(initiEmails);
 
