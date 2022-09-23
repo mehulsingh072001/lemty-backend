@@ -164,8 +164,9 @@ public class MailJobService {
             Date emailStartDateTime = trigger.getFireTimeAfter(Date.from(startDate.toInstant()));
             if(DateUtils.isSameDay(Date.from(currentZonedDateTime.toInstant()), emailStartDateTime)){
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
+                email2.setStartTime(emailStartDateTime);
+
                 for(Emails email2 : emails){
-                    email2.setStartTime(emailStartDateTime);
                     email2.setStatus("TODAY");
                 }
                 emailsRepository.saveAll(emails);
@@ -173,7 +174,6 @@ public class MailJobService {
             else{
                 List<Emails> emails = emailsRepository.findByCampaignIdAndStatus(campaignId, "TODAY");
                 for(Emails email2 : emails){
-                    email2.setStartTime(emailStartDateTime);
                     email2.setStatus("UPCOMING");
                 }
                 emailsRepository.saveAll(emails);
