@@ -91,10 +91,6 @@ public class MailJobService {
         for(int i=0; i < prospectIds.size(); i++){
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
             ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospect.getId(), campaignId);
-            if(metadata.getLastCompletedStep() != stepIndex){
-                logger.info("Hello World");
-            }
-            else{
                 //Mail Data
                 if(!prospect.getUnsubscribed()){
                     String from = step.get("whichEmail").toString();
@@ -152,7 +148,7 @@ public class MailJobService {
                         e.printStackTrace();
                     }
                 }
-            }
+            
         }
         emailsRepository.saveAll(initiEmails);
 
